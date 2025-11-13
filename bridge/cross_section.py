@@ -276,4 +276,4 @@ if __name__ == "__main__":
     print(cross_section.width())
     print(cross_section.height())
     print(cross_section.moment_of_inertia() * 1e-6)
-    print(cross_section.q())
+    print(cross_section.q_max())
