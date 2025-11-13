@@ -54,7 +54,7 @@ if __name__ == "__main__":
         plt.hlines(safety_factor_threshold, 0, 1200 - 960, "red")
         plt.grid(True)
         plt.title("Safety Factor on Various Positions")
-        plt.xlabel("Position (mm)")
+        plt.xlabel("Train Position (mm)")
         plt.ylabel("Safety Factor")
         plt.legend(("Top", "Bottom", "Failure Threshold"))
         plt.savefig("safety_factors.png")
