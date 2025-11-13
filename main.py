@@ -4,9 +4,9 @@ from matplotlib import pyplot as plt
 from bridge import *
 
 if __name__ == "__main__":
-    graph = False
-    # cross_section = ArbitraryCrossSection(418000, (50, 41.4), 100, 76.27, 0)
-    cross_section = CIV102Beam()
+    graph = True
+    safety_factor_threshold = 1
+    cross_section = CIV102Beam(thickness=1)
     # bridge = Bridge(1200, 452, cross_section)
     bridge = Bridge(1200, 400, cross_section, mass_distribution=(1,) * 6)
     bridge.move_the_train(-bridge.wheel_positions[0])
@@ -23,12 +23,12 @@ if __name__ == "__main__":
         safety_factors_top.append(sft)
         safety_factors_bot.append(sfb)
         if i == 172:
-            print(bridge.safety_factor(safe_stress))
+            print("Safety factor when the train is centered:", bridge.safety_factor(safe_stress))
         bridge.move_the_train(1)
     shear_force_envelope = np.max(np.array(shear_forces), axis=0)
     bending_moment_envelope = np.max(np.array(bending_moments), axis=0)
-    print(intervals(np.array(safety_factors_top) < 1))
-    print(intervals(np.array(safety_factors_bot) < 1))
+    print("Intervals (inclusive) where the top fails:", intervals(np.array(safety_factors_top) < safety_factor_threshold))
+    print("Intervals (inclusive) where the bottom fails:", intervals(np.array(safety_factors_bot) < safety_factor_threshold))
     if graph:
         plt.figure(figsize=(12, 6))
         plt.plot(x, shear_force_envelope)
@@ -51,7 +51,7 @@ if __name__ == "__main__":
         plt.figure(figsize=(12, 6))
         plt.plot(safety_factors_top, "orange")
         plt.plot(safety_factors_bot, "purple")
-        plt.hlines(1, 0, 1200 - 960, "red")
+        plt.hlines(safety_factor_threshold, 0, 1200 - 960, "red")
         plt.grid(True)
         plt.title("Safety Factor on Various Positions")
         plt.xlabel("Position (mm)")
