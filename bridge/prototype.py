@@ -95,11 +95,14 @@ class BeamBridge(object):
 
     def max_shear_stress(self) -> float:
         cs = self.cross_section
-        return max(self.shear_forces()) * cs.q() / cs.moment_of_inertia() / cs.width()
+        return max(self.shear_forces()) * cs.q_max() / cs.moment_of_inertia() / cs.width()
 
     def safety_factor(self, safe_stress: tuple[float, float]) -> tuple[float, float]:
         sigma_top, sigma_bot = self.ultimate_stress()
         return safe_stress[0] / sigma_top, safe_stress[1] / sigma_bot
+
+    def shear_safety_factor(self, safe_stress: float) -> float:
+        return safe_stress / self.max_shear_stress()
 
     def move_the_train(self, step_size: float) -> None:
         self.wheel_positions += step_size
