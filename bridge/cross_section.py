@@ -66,7 +66,7 @@ class RectangularCrossSection(CrossSection):
 
     @override
     def centroid(self) -> tuple[float, float]:
-        return self.b / 2, self.h / 2
+        return self.b * .5, self.h * .5
 
     @override
     def width(self) -> float:
@@ -124,15 +124,20 @@ class ComplexCrossSection(CrossSection):
         farthest_cross_section = max(self.basic_cross_sections, key=lambda cs: cs[0].height() + cs[2])
         return farthest_cross_section[0].height() + farthest_cross_section[2]
 
+    def d_squared(self, i: int) -> float:
+        x_hat, y_hat = self.centroid()
+        cs, x_offset, y_offset = self.basic_cross_sections[i]
+        cx, cy = cs.centroid()
+        # return (x_hat - x_offset - cx) ** 2 + (y_hat - y_offset - cy) ** 2
+        return (y_hat - y_offset - cy) ** 2
+
+    def d(self, i: int) -> float:
+        return self.d_squared(i) ** .5
+
     @override
     def moment_of_inertia(self) -> float:
-        x_hat, y_hat = self.centroid()
-        total_moment_of_inertia = 0
-        for cs, x_offset, y_offset in self.basic_cross_sections:
-            cx, cy = cs.centroid()
-            d_squared = (x_hat - x_offset - cx) ** 2 + (y_hat - y_offset - cy) ** 2
-            total_moment_of_inertia += cs.moment_of_inertia() + cs.area() * d_squared
-        return total_moment_of_inertia
+        return sum(cs.moment_of_inertia() + cs.area() * self.d_squared(i) for i, (cs, x_offset, y_offset) in enumerate(
+            self.basic_cross_sections))
 
     @override
     def area(self) -> float:
@@ -156,6 +161,34 @@ class IBeam(ComplexCrossSection):
             (RectangularCrossSection(bf, t), 0, 0),
             (RectangularCrossSection(bw, d - 2 * t), .5 * (bf - bw), t),
             (RectangularCrossSection(bf, t), 0, d - t),
+        ])
+
+
+class CIV102Beam(ComplexCrossSection):
+    def __init__(self, top: float = 100, bottom: float = 80, height: float = 75, thickness: float = 1.27,
+                 outreach: float = 5) -> None:
+        """
+        ============================== ---
+        [            top             ]  | thickness
+        ============================== ---
+          [   ][ out-]  [reach][   ]    | thickness
+          [   ]=======  =======[   ]   ---
+          [   ]                [   ]    |
+          [   ]                [   ]    | height - 2 * thickness
+          [   ]                [   ]    |
+          ==========================   ---
+          [         bottom         ]    | thickness
+          ==========================   ---
+          |---| thickness
+        """
+        left, right = (top - bottom) * .5, (top + bottom) * .5
+        super().__init__([
+            (RectangularCrossSection(100, 1.27), 0, height), # top beam
+            (RectangularCrossSection(outreach, thickness), left + thickness, height - thickness),
+            (RectangularCrossSection(outreach, thickness), right - thickness - outreach, height - thickness),
+            (RectangularCrossSection(thickness, height - thickness), left, thickness),
+            (RectangularCrossSection(thickness, height - thickness), right - thickness, thickness),
+            (RectangularCrossSection(bottom, thickness), left, 0), # bottom beam
         ])
 
 
