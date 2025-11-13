@@ -232,6 +232,29 @@ class ComplexCrossSection(CrossSection):
         return self.__class__(r)
 
 
+class HollowBeam(ComplexCrossSection):
+    def __init__(self, b: float, h: float, thickness: float) -> None:
+        """
+                b
+        |---------------|
+        ================= ---
+        =================  |
+        []             []  |
+        []             []  |
+        []             []  | h
+        []             []  |
+        []             []  |
+        =================  |
+        ================= ---
+        """
+        super().__init__([
+            (RectangularCrossSection(thickness, h), 0, 0),
+            (RectangularCrossSection(thickness, h), b - thickness, 0),
+            (RectangularCrossSection(b - 2 * thickness, thickness), 0, thickness),
+            (RectangularCrossSection(b - 2 * thickness, thickness), b - thickness, thickness),
+        ])
+
+
 class IBeam(ComplexCrossSection):
     def __init__(self, d: float, bf: float, t: float, bw: float) -> None:
         super().__init__([
