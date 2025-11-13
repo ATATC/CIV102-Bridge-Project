@@ -165,7 +165,7 @@ class IBeam(ComplexCrossSection):
 
 
 class CIV102Beam(ComplexCrossSection):
-    def __init__(self, top: float = 100, bottom: float = 80, height: float = 75, thickness: float = 1.27,
+    def __init__(self, *, top: float = 100, bottom: float = 80, height: float = 75, thickness: float = 1.27,
                  outreach: float = 5) -> None:
         """
         ============================== ---
