@@ -14,6 +14,7 @@ if __name__ == "__main__":
     ) # load case 2 - subsequent passes
     bridge.move_the_train(-bridge.wheel_positions[0])
     safe_stress = (6, 30)
+    safe_stress_shear = 4
     safety_factors_top = []
     safety_factors_bot = []
     shear_forces = []
@@ -27,7 +28,8 @@ if __name__ == "__main__":
         safety_factors_top.append(sft)
         safety_factors_bot.append(sfb)
         if i == 172:
-            print("Safety factor when the train is centered:", bridge.safety_factor(safe_stress))
+            print("Safety factors when the train is centered:", bridge.safety_factor(safe_stress),
+                  bridge.shear_safety_factor(safe_stress_shear))
         bridge.move_the_train(1)
     shear_force_envelope = np.max(np.array(shear_forces), axis=0)
     bending_moment_envelope = np.max(np.array(bending_moments), axis=0)
