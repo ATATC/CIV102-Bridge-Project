@@ -32,8 +32,11 @@ class CrossSection(object, metaclass=ABCMeta):
         return length * density * self.area()
 
     @abstractmethod
-    def q(self) -> float:
+    def q(self, y: float) -> float:
         raise NotImplementedError
+
+    def q_max(self) -> float:
+        return self.q(self.centroid()[1])
 
     @abstractmethod
     def sub_above(self, y: float) -> Self:
@@ -75,8 +78,9 @@ class RectangularCrossSection(CrossSection):
         return self.b * (self.h - y)
 
     @override
-    def q(self) -> float:
-        return .125 * self.b * self.h ** 2
+    def q(self, y: float) -> float:
+        self.check_y(y)
+        return .5 * self.b * (self.h - y) ** 2
 
     @override
     def sub_above(self, y: float) -> Self:
@@ -109,16 +113,22 @@ class CircularCrossSection(CrossSection):
     def area(self) -> float:
         return pi * self.r ** 2
 
-    @override
-    def area_above(self, y: float) -> float:
+    def check_y(self, y: float) -> None:
         if not 0 <= y < self.d:
             raise ValueError(f"y={y} must be between 0 and {self.d}")
+
+    @override
+    def area_above(self, y: float) -> float:
+        self.check_y(y)
         theta = 2 * pi - 2 * (pi - pi * (self.d - y) / self.d)
         return self.r ** 2 * (theta - 2 * (theta - pi) / 2)
 
     @override
-    def q(self) -> float:
-        return 2 * self.r ** 3 / 3
+    def q(self, y: float) -> float:
+        self.check_y(y)
+        area = self.area_above(y)
+        centroid_y = (self.d + y) / 2
+        return area * (centroid_y - y)
 
     @override
     def sub_above(self, y: float) -> Self:
@@ -190,14 +200,14 @@ class ComplexCrossSection(CrossSection):
         return self.centroid_along(0), self.centroid_along(1)
 
     @override
-    def q(self) -> float:
-        _, y_hat = self.centroid()
-        components = self.select_components_above(y_hat)
+    def q(self, y: float) -> float:
+        self.check_y(y)
+        components = self.select_components_above(y)
         q = 0
         for cs, x_offset, y_offset in components:
-            relative_y = y_hat - y_offset
+            relative_y = y - y_offset
             if relative_y < 0:
-                q += cs.area() * (cs.centroid()[1] + y_offset - y_hat)
+                q += cs.area() * (cs.centroid()[1] + y_offset - y)
                 continue
             sub = cs.sub_above(relative_y)
             q += sub.area() * sub.centroid()[1]
