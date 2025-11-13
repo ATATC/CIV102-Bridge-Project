@@ -35,8 +35,9 @@ if __name__ == "__main__":
         bridge.move_the_train(1)
     shear_force_envelope = np.max(np.array(shear_forces), axis=0)
     bending_moment_envelope = np.max(np.array(bending_moments), axis=0)
-    print("Intervals (inclusive) where the top fails:", intervals(np.array(safety_factors_top) < safety_factor_threshold))
-    print("Intervals (inclusive) where the bottom fails:", intervals(np.array(safety_factors_bot) < safety_factor_threshold))
+    print("Intervals (inclusive) where the bridge fails due to compression:", intervals(np.array(safety_factors_top) < safety_factor_threshold))
+    print("Intervals (inclusive) where the bridge fails due to tension:", intervals(np.array(safety_factors_bot) < safety_factor_threshold))
+    print("Intervals (inclusive) where the bridge fails due to shear:", intervals(np.array(safety_factors_shear) < safety_factor_threshold))
     if graph:
         plt.figure(figsize=(12, 6))
         plt.plot(x, shear_force_envelope)
