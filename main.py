@@ -7,14 +7,6 @@ if __name__ == "__main__":
     graph = False
     # cross_section = ArbitraryCrossSection(418000, (50, 41.4), 100, 76.27, 0)
     cross_section = CIV102Beam()
-    print(cross_section.moment_of_inertia() * 1e-6)
-    print(cross_section.centroid())
-    print(cross_section.d(1), cross_section.d(2))
-    i = 1
-    base = cross_section.basic_cross_sections[i][0]
-    print(cross_section.d(i))
-    print("I0", base.moment_of_inertia())
-    print("Ix", base.moment_of_inertia() + base.area() * cross_section.d_squared(i))
     # bridge = Bridge(1200, 452, cross_section)
     bridge = Bridge(1200, 400, cross_section, mass_distribution=(1,) * 6)
     bridge.move_the_train(-bridge.wheel_positions[0])
