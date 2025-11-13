@@ -131,7 +131,6 @@ class ComplexCrossSection(CrossSection):
         for cs, x_offset, y_offset in self.basic_cross_sections:
             cx, cy = cs.centroid()
             d_squared = (x_hat - x_offset - cx) ** 2 + (y_hat - y_offset - cy) ** 2
-            print("d", d_squared ** 0.5)
             total_moment_of_inertia += cs.moment_of_inertia() + cs.area() * d_squared
         return total_moment_of_inertia
 
