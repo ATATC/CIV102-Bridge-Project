@@ -14,9 +14,10 @@ if __name__ == "__main__":
     ) # load case 2 - subsequent passes
     bridge.move_the_train(-bridge.wheel_positions[0])
     safe_stress = (6, 30)
-    safe_stress_shear = 4
+    safe_shear_stress = 4
     safety_factors_top = []
     safety_factors_bot = []
+    safety_factors_shear = []
     shear_forces = []
     bending_moments = []
     x = bridge.x_linespace()
@@ -27,9 +28,10 @@ if __name__ == "__main__":
         sft, sfb = bridge.safety_factor((6, 30))
         safety_factors_top.append(sft)
         safety_factors_bot.append(sfb)
+        safety_factors_shear.append(bridge.shear_safety_factor(safe_shear_stress))
         if i == 172:
             print("Safety factors when the train is centered:", bridge.safety_factor(safe_stress),
-                  bridge.shear_safety_factor(safe_stress_shear))
+                  bridge.shear_safety_factor(safe_shear_stress))
         bridge.move_the_train(1)
     shear_force_envelope = np.max(np.array(shear_forces), axis=0)
     bending_moment_envelope = np.max(np.array(bending_moments), axis=0)
@@ -57,11 +59,12 @@ if __name__ == "__main__":
         plt.figure(figsize=(12, 6))
         plt.plot(safety_factors_top, "orange")
         plt.plot(safety_factors_bot, "purple")
+        plt.plot(safety_factors_shear, "blue")
         plt.hlines(safety_factor_threshold, 0, n, "red")
         plt.grid(True)
         plt.title("Safety Factor on Various Positions")
         plt.xlabel("Train Position (mm)")
         plt.ylabel("Safety Factor")
-        plt.legend(("Top", "Bottom", "Failure Threshold"))
+        plt.legend(("Compressive", "Tensile", "Shear", "Failure Threshold"))
         plt.savefig("safety_factors.png")
         plt.show()
