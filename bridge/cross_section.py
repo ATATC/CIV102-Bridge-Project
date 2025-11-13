@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from math import pi
-from typing import override, Literal, Sequence
+from typing import override, Literal, Sequence, Self
 
 
 class CrossSection(object, metaclass=ABCMeta):
@@ -24,38 +24,20 @@ class CrossSection(object, metaclass=ABCMeta):
     def area(self) -> float:
         raise NotImplementedError
 
+    @abstractmethod
+    def area_above(self, y: float) -> float:
+        raise NotImplementedError
+
     def mass(self, length: float, density: float) -> float:
         return length * density * self.area()
 
+    @abstractmethod
+    def q(self) -> float:
+        raise NotImplementedError
 
-class ArbitraryCrossSection(CrossSection):
-    def __init__(self, moment_of_inertia: float, centroid: tuple[float, float], width: float, height: float,
-                 area: float) -> None:
-        self._moment_of_inertia: float = moment_of_inertia
-        self._centroid: tuple[float, float] = centroid
-        self._width: float = width
-        self._height: float = height
-        self._area: float = area
-
-    @override
-    def moment_of_inertia(self) -> float:
-        return self._moment_of_inertia
-
-    @override
-    def centroid(self) -> tuple[float, float]:
-        return self._centroid
-
-    @override
-    def width(self) -> float:
-        return self._width
-
-    @override
-    def height(self) -> float:
-        return self._height
-
-    @override
-    def area(self) -> float:
-        return self._area
+    @abstractmethod
+    def sub_above(self, y: float) -> Self:
+        raise NotImplementedError
 
 
 class RectangularCrossSection(CrossSection):
@@ -83,6 +65,24 @@ class RectangularCrossSection(CrossSection):
     def area(self) -> float:
         return self.b * self.h
 
+    def check_y(self, y: float) -> None:
+        if not 0 <= y < self.h:
+            raise ValueError(f"y={y} must be between 0 and {self.h}")
+
+    @override
+    def area_above(self, y: float) -> float:
+        self.check_y(y)
+        return self.b * (self.h - y)
+
+    @override
+    def q(self) -> float:
+        return .125 * self.b * self.h ** 2
+
+    @override
+    def sub_above(self, y: float) -> Self:
+        self.check_y(y)
+        return RectangularCrossSection(self.b, self.h - y)
+
 
 class CircularCrossSection(CrossSection):
     def __init__(self, r: float) -> None:
@@ -108,6 +108,21 @@ class CircularCrossSection(CrossSection):
     @override
     def area(self) -> float:
         return pi * self.r ** 2
+
+    @override
+    def area_above(self, y: float) -> float:
+        if not 0 <= y < self.d:
+            raise ValueError(f"y={y} must be between 0 and {self.d}")
+        theta = 2 * pi - 2 * (pi - pi * (self.d - y) / self.d)
+        return self.r ** 2 * (theta - 2 * (theta - pi) / 2)
+
+    @override
+    def q(self) -> float:
+        return 2 * self.r ** 3 / 3
+
+    @override
+    def sub_above(self, y: float) -> Self:
+        raise NotImplementedError
 
 
 class ComplexCrossSection(CrossSection):
@@ -146,6 +161,23 @@ class ComplexCrossSection(CrossSection):
     def area(self) -> float:
         return sum(cs[0].area() for cs in self.basic_cross_sections)
 
+    def check_y(self, y: float) -> None:
+        if not 0 <= y < self.height():
+            raise ValueError(f"y={y} must be between 0 and {self.height()}")
+
+    def select_components_above(self, y: float) -> list[tuple[CrossSection, float, float]]:
+        self.check_y(y)
+        return [
+            (cs, x_offset, y_offset) for cs, x_offset, y_offset in self.basic_cross_sections
+            if y_offset <= y < y_offset + cs.height()
+        ]
+
+    @override
+    def area_above(self, y: float) -> float:
+        self.check_y(y)
+        components = self.select_components_above(y)
+        return sum(cs.area_above(max(y - y_offset, 0)) for cs, x_offset, y_offset in components)
+
     def centroid_along(self, axis: Literal[0, 1]) -> float:
         total = 0
         for cs, x_offset, y_offset in self.basic_cross_sections:
@@ -156,6 +188,33 @@ class ComplexCrossSection(CrossSection):
     @override
     def centroid(self) -> tuple[float, float]:
         return self.centroid_along(0), self.centroid_along(1)
+
+    @override
+    def q(self) -> float:
+        _, y_hat = self.centroid()
+        components = self.select_components_above(y_hat)
+        q = 0
+        for cs, x_offset, y_offset in components:
+            relative_y = y_hat - y_offset
+            if relative_y < 0:
+                q += cs.area() * (cs.centroid()[1] + y_offset - y_hat)
+                continue
+            sub = cs.sub_above(relative_y)
+            q += sub.area() * sub.centroid()[1]
+        return q
+
+    @override
+    def sub_above(self, y: float) -> Self:
+        components = self.select_components_above(y)
+        r = []
+        for cs, x_offset, y_offset in components:
+            relative_y = y - y_offset
+            if relative_y < 0:
+                r.append((cs, x_offset, y_offset - y))
+                continue
+            sub = cs.sub_above(relative_y)
+            r.append((sub, x_offset, 0))
+        return self.__class__(r)
 
 
 class IBeam(ComplexCrossSection):
@@ -186,12 +245,12 @@ class CIV102Beam(ComplexCrossSection):
         """
         left, right = (top - bottom) * .5, (top + bottom) * .5
         super().__init__([
-            (RectangularCrossSection(100, 1.27), 0, height), # top beam
+            (RectangularCrossSection(100, 1.27), 0, height),  # top beam
             (RectangularCrossSection(outreach, thickness), left + thickness, height - thickness),
             (RectangularCrossSection(outreach, thickness), right - thickness - outreach, height - thickness),
             (RectangularCrossSection(thickness, height - thickness), left, thickness),
             (RectangularCrossSection(thickness, height - thickness), right - thickness, thickness),
-            (RectangularCrossSection(bottom, thickness), left, 0), # bottom beam
+            (RectangularCrossSection(bottom, thickness), left, 0),  # bottom beam
         ])
 
 
@@ -207,3 +266,4 @@ if __name__ == "__main__":
     print(cross_section.width())
     print(cross_section.height())
     print(cross_section.moment_of_inertia() * 1e-6)
+    print(cross_section.q())
