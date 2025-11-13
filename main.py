@@ -4,8 +4,9 @@ from matplotlib import pyplot as plt
 from bridge import Bridge, ArbitraryCrossSection, intervals
 
 if __name__ == "__main__":
-    # bridge = Bridge(1200, 452, ArbitraryCrossSection(418000, 41.4, 76.27))
-    bridge = Bridge(1200, 400, ArbitraryCrossSection(418000, 41.4, 76.27), mass_distribution=(1,) * 6)
+    cross_section = ArbitraryCrossSection(418000, (50, 41.4), 100, 76.27, 0)
+    # bridge = Bridge(1200, 452, cross_section)
+    bridge = Bridge(1200, 400, cross_section, mass_distribution=(1,) * 6)
     bridge.move_the_train(-bridge.wheel_positions[0])
     safe_stress = (6, 30)
     safety_factors_top = []

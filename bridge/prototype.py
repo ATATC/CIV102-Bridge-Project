@@ -91,7 +91,7 @@ class Bridge(object):
         m_max = max(max(m), -min(m))
         i = self.cross_section.moment_of_inertia()
         h = self.cross_section.height()
-        return m_max * (h - self.cross_section.centroid()) / i, m_max * self.cross_section.centroid() / i
+        return m_max * (h - self.cross_section.centroid()[1]) / i, m_max * self.cross_section.centroid()[1] / i
 
     def safety_factor(self, safe_stress: tuple[float, float]) -> tuple[float, float]:
         sigma_top, sigma_bot = self.ultimate_stress()
