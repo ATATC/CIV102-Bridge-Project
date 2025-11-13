@@ -16,7 +16,8 @@ if __name__ == "__main__":
     shear_forces = []
     bending_moments = []
     x = bridge.x_linespace()
-    for i in range(1200 - 960):
+    n = 1200 - 960 + 104
+    for i in range(n):
         shear_forces.append(bridge.expanded_shear_forces(x))
         bending_moments.append(bridge.expanded_bending_moments(x))
         sft, sfb = bridge.safety_factor((6, 30))
@@ -51,7 +52,7 @@ if __name__ == "__main__":
         plt.figure(figsize=(12, 6))
         plt.plot(safety_factors_top, "orange")
         plt.plot(safety_factors_bot, "purple")
-        plt.hlines(safety_factor_threshold, 0, 1200 - 960, "red")
+        plt.hlines(safety_factor_threshold, 0, n, "red")
         plt.grid(True)
         plt.title("Safety Factor on Various Positions")
         plt.xlabel("Train Position (mm)")
