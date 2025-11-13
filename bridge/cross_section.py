@@ -24,6 +24,9 @@ class CrossSection(object, metaclass=ABCMeta):
     def area(self) -> float:
         raise NotImplementedError
 
+    def mass(self, length: float, density: float) -> float:
+        return length * density * self.area()
+
 
 class ArbitraryCrossSection(CrossSection):
     def __init__(self, moment_of_inertia: float, centroid: tuple[float, float], width: float, height: float,

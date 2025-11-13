@@ -6,7 +6,7 @@ from bridge import *
 if __name__ == "__main__":
     graph = True
     safety_factor_threshold = 1
-    cross_section = CIV102Beam(thickness=1)
+    cross_section = CIV102Beam(thickness=3)
     # bridge = BeamBridge(1200, 400, cross_section, mass_distribution=(1,) * 6) # load case 1
     # bridge = BeamBridge(1200, 452, cross_section) # load case 2 - first pass
     bridge = BeamBridge(
