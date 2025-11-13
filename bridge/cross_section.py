@@ -16,6 +16,9 @@ class CrossSection(object, metaclass=ABCMeta):
     def width(self) -> float:
         raise NotImplementedError
 
+    def min_width(self) -> float:
+        return self.width()
+
     @abstractmethod
     def height(self) -> float:
         raise NotImplementedError
@@ -144,13 +147,15 @@ class ComplexCrossSection(CrossSection):
 
     @override
     def width(self) -> float:
-        farthest_cross_section = max(self.basic_cross_sections, key=lambda cs: cs[0].width() + cs[1])
-        return farthest_cross_section[0].width() + farthest_cross_section[1]
+        return max(cs.width() + x_offset for cs, x_offset, _ in self.basic_cross_sections)
+
+    @override
+    def min_width(self) -> float:
+        return min(cs.min_width() for cs, _, _ in self.basic_cross_sections)
 
     @override
     def height(self) -> float:
-        farthest_cross_section = max(self.basic_cross_sections, key=lambda cs: cs[0].height() + cs[2])
-        return farthest_cross_section[0].height() + farthest_cross_section[2]
+        return max(cs.height() + y_offset for cs, _, y_offset in self.basic_cross_sections)
 
     def d_squared(self, i: int) -> float:
         x_hat, y_hat = self.centroid()
