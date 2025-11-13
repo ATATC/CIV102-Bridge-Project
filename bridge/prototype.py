@@ -74,7 +74,7 @@ class Bridge(object):
 
     def bmd(self, *, dx: float = 1) -> None:
         x = self.x_linespace(dx=dx)
-        v = self.expanded_bending_moments(x) / 1e3
+        v = self.expanded_bending_moments(x) * 1e-3
         plt.figure(figsize=(12, 6))
         plt.plot(x, v)
         plt.grid(True)
