@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from bridge.cross_section import CrossSection
 
 
-class Bridge(object):
+class BeamBridge(object):
     def __init__(self, length: float, train_mass: float, cross_section: CrossSection, *, num_cars: int = 3,
                  wheel_positions: Sequence[float] = (172, 348, 512, 688, 852, 1028),
                  mass_distribution: Sequence[float] = (1.35, 1.35, 1, 1, 1, 1)) -> None:
