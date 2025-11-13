@@ -151,12 +151,22 @@ class ComplexCrossSection(CrossSection):
         return self.centroid_along(0), self.centroid_along(1)
 
 
+class IBeam(ComplexCrossSection):
+    def __init__(self, d: float, bf: float, t: float, bw: float) -> None:
+        super().__init__([
+            (RectangularCrossSection(bf, t), 0, 0),
+            (RectangularCrossSection(bw, d - 2 * t), .5 * (bf - bw), t),
+            (RectangularCrossSection(bf, t), 0, d - t),
+        ])
+
+
 if __name__ == "__main__":
     cross_section = ComplexCrossSection([
         (RectangularCrossSection(423, 43), 0, 0),
         (RectangularCrossSection(24, 847), 199.5, 43),
         (RectangularCrossSection(423, 43), 0, 890),
     ])
+    # cross_section = IBeam(933, 423, 43, 24)
     print(cross_section.centroid())
     print(cross_section.area())
     print(cross_section.width())
