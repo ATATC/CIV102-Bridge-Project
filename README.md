@@ -132,7 +132,7 @@ The dead zones are tuples of two integers representing the start and end positio
 
 #### Maximum Load
 
-To determine the maximum load under given conditions, we can use the `Evaluator.max_load()` method.
+To determine the maximum load under given conditions, we can use the `Evaluator.maximum_load()` method.
 
 ```python
 from bridger import *
