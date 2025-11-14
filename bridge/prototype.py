@@ -33,6 +33,9 @@ class Bridge(object, metaclass=ABCMeta):
     def loads(self) -> list[float]:
         return list(self._loads)
 
+    def place_the_train(self, start: float) -> None:
+        self.move_the_train(start - self._wheel_positions[0])
+
     def move_the_train(self, step_size: float) -> None:
         self._wheel_positions += step_size
 
