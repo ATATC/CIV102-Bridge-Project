@@ -1,17 +1,17 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
+from bridge.material import Material
 from bridge.prototype import Bridge
 from bridge.utils import intervals
 
 
 class Evaluator(object):
-    def __init__(self, bridge: Bridge, safe_compressive_stress: float, safe_tensile_stress: float,
-                 safe_shear_stress: float, *, safety_factor_threshold: float = 1) -> None:
+    def __init__(self, bridge: Bridge, material: Material, *, safety_factor_threshold: float = 1) -> None:
         self._bridge: Bridge = bridge
-        self._safe_compressive_stress: float = safe_compressive_stress
-        self._safe_tensile_stress: float = safe_tensile_stress
-        self._safe_shear_stress: float = safe_shear_stress
+        self._safe_compressive_stress: float = material.compressive_strength
+        self._safe_tensile_stress: float = material.tensile_strength
+        self._safe_shear_stress: float = material.shear_strength
         self._safety_factor_threshold: float = safety_factor_threshold
         self._real_train_load: float = bridge.train_load()
         self._real_train_position: float = bridge.wheel_positions()[0]
