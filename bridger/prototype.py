@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from os import PathLike
 from typing import Sequence, override
 
 import numpy as np
@@ -105,7 +106,7 @@ class BeamBridge(Bridge):
         v[x > self._length] = v0[-1]
         return v
 
-    def plot_sfd(self, *, dx: float = 1) -> None:
+    def plot_sfd(self, *, dx: float = 1, save_as: str | PathLike[str] | None = None) -> None:
         x = self.x_linespace(dx=dx)
         v = self.expanded_shear_forces(x)
         plt.figure(figsize=(12, 6))
@@ -114,7 +115,10 @@ class BeamBridge(Bridge):
         plt.title("Shear Force Diagram")
         plt.xlabel("Position (mm)")
         plt.ylabel("Shear Force (N)")
+        if save_as:
+            plt.savefig(save_as)
         plt.show()
+        plt.close()
 
     def bending_moments(self) -> list[float]:
         v = self.shear_forces()
@@ -131,7 +135,7 @@ class BeamBridge(Bridge):
             m[i] = m[i - 1] + v[i - 1] * (x[i] - x[i - 1])
         return m
 
-    def plot_bmd(self, *, dx: float = 1) -> None:
+    def plot_bmd(self, *, dx: float = 1, save_as: str | PathLike[str] | None = None) -> None:
         x = self.x_linespace(dx=dx)
         v = self.expanded_bending_moments(x) * 1e-3
         plt.figure(figsize=(12, 6))
@@ -140,7 +144,10 @@ class BeamBridge(Bridge):
         plt.title("Bending Moment Diagram")
         plt.xlabel("Position (mm)")
         plt.ylabel("Bending Moment (Nm)")
+        if save_as:
+            plt.savefig(save_as)
         plt.show()
+        plt.close()
 
     @override
     def ultimate_stress(self) -> tuple[float, float]:
