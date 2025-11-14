@@ -247,10 +247,10 @@ class HollowBeam(ComplexCrossSection):
         ================= ---
         """
         super().__init__([
-            (RectangularCrossSection(thickness, h), 0, 0),
-            (RectangularCrossSection(thickness, h), b - thickness, 0),
-            (RectangularCrossSection(b - 2 * thickness, thickness), 0, thickness),
-            (RectangularCrossSection(b - 2 * thickness, thickness), b - thickness, thickness)
+            (RectangularCrossSection(b, thickness), 0, 0),  # bottom beam
+            (RectangularCrossSection(thickness, h - 2 * thickness), 0, thickness),
+            (RectangularCrossSection(thickness, h - 2 * thickness), b - thickness, thickness),
+            (RectangularCrossSection(b, thickness), 0, h - thickness)  # top beam
         ])
 
 
