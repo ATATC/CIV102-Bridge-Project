@@ -8,27 +8,27 @@ from bridge.cross_section import CrossSection
 
 
 class Bridge(object, metaclass=ABCMeta):
-    def __init__(self, train_mass: float, wheel_positions: Sequence[float], mass_distribution: Sequence[float]) -> None:
-        self._train_mass: float = train_mass
+    def __init__(self, train_load: float, wheel_positions: Sequence[float], load_distribution: Sequence[float]) -> None:
+        self._train_load: float = train_load
         self._wheel_positions: np.ndarray = np.array(wheel_positions)
-        self._mass_distribution: np.ndarray = np.array(mass_distribution) / sum(mass_distribution)
-        self._loads: np.ndarray = self._mass_distribution * train_mass
+        self._load_distribution: np.ndarray = np.array(load_distribution) / sum(load_distribution)
+        self._loads: np.ndarray = self._load_distribution * train_load
 
     @abstractmethod
     def length(self) -> float:
         raise NotImplementedError
 
-    def train_mass(self, *, train_mass: float | None = None) -> float | None:
-        if train_mass is None:
-            return self._train_mass
-        self._train_mass = train_mass
-        self._loads = self._mass_distribution * train_mass
+    def train_load(self, *, train_load: float | None = None) -> float | None:
+        if train_load is None:
+            return self._train_load
+        self._train_load = train_load
+        self._loads = self._load_distribution * train_load
 
     def wheel_positions(self) -> list[float]:
         return list(self._wheel_positions)
 
-    def mass_distribution(self) -> list[float]:
-        return list(self._mass_distribution)
+    def load_distribution(self) -> list[float]:
+        return list(self._load_distribution)
 
     def loads(self) -> list[float]:
         return list(self._loads)
@@ -36,8 +36,8 @@ class Bridge(object, metaclass=ABCMeta):
     def move_the_train(self, step_size: float) -> None:
         self._wheel_positions += step_size
 
-    def add_train_mass(self, delta_mass: float) -> None:
-        self.train_mass(train_mass=self._train_mass + delta_mass)
+    def add_train_load(self, delta_load: float) -> None:
+        self.train_load(train_load=self._train_load + delta_load)
 
     @abstractmethod
     def ultimate_stress(self) -> tuple[float, float]:
@@ -63,10 +63,10 @@ class Bridge(object, metaclass=ABCMeta):
 
 
 class BeamBridge(Bridge):
-    def __init__(self, train_mass: float, cross_section: CrossSection, *, length: float = 1200,
+    def __init__(self, train_load: float, cross_section: CrossSection, *, length: float = 1200,
                  wheel_positions: Sequence[float] = (172, 348, 512, 688, 852, 1028),
-                 mass_distribution: Sequence[float] = (1.35, 1.35, 1, 1, 1, 1)) -> None:
-        super().__init__(train_mass, wheel_positions, mass_distribution)
+                 load_distribution: Sequence[float] = (1.35, 1.35, 1, 1, 1, 1)) -> None:
+        super().__init__(train_load, wheel_positions, load_distribution)
         self._length: float = length
         self._cross_section: CrossSection = cross_section
 
@@ -83,7 +83,7 @@ class BeamBridge(Bridge):
 
     def reaction_forces(self) -> tuple[float, float]:
         r_end = float((self._wheel_positions * self._loads).sum()) / self._length
-        return self._train_mass - r_end, r_end
+        return self._train_load - r_end, r_end
 
     def shear_forces(self) -> list[float]:
         r_start, r_end = self.reaction_forces()

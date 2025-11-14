@@ -13,18 +13,18 @@ class Evaluator(object):
         self._safe_tensile_stress: float = safe_tensile_stress
         self._safe_shear_stress: float = safe_shear_stress
         self._safety_factor_threshold: float = safety_factor_threshold
-        self._real_train_mass: float = bridge.train_mass()
+        self._real_train_load: float = bridge.train_load()
         self._real_train_position: float = bridge.wheel_positions()[0]
 
     def bridge(self) -> Bridge:
         return self._bridge
 
     def set_to_minimal(self) -> None:
-        self._bridge.train_mass(train_mass=1)
+        self._bridge.train_load(train_load=1)
         self._bridge.move_the_train(-self._real_train_position)
 
     def reset(self) -> None:
-        self._bridge.train_mass(train_mass=self._real_train_mass)
+        self._bridge.train_load(train_load=self._real_train_load)
         self._bridge.move_the_train(self._real_train_position)
 
     def n(self, *, dx: float = 1) -> int:
@@ -65,18 +65,18 @@ class Evaluator(object):
 
     def maximum_load(self, *, dx: float = 1) -> float:
         self.set_to_minimal()
-        delta_mass = 1000
-        while delta_mass > 10:
+        delta_load = 1000
+        while delta_load > 10:
             dead_zones = self.dead_zones(dx=dx)
             if len(dead_zones) > 0:
-                if self._bridge.train_mass() < delta_mass:
+                if self._bridge.train_load() < delta_load:
                     return 0
-                delta_mass *= .5
-                self._bridge.add_train_mass(-delta_mass)
+                delta_load *= .5
+                self._bridge.add_train_load(-delta_load)
             else:
-                delta_mass *= 2
-                self._bridge.add_train_mass(delta_mass)
+                delta_load *= 2
+                self._bridge.add_train_load(delta_load)
         try:
-            return self._bridge.train_mass()
+            return self._bridge.train_load()
         finally:
             self.reset()
