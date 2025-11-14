@@ -75,7 +75,7 @@ class Evaluator(object):
     def maximum_load(self, *, dx: float = 1) -> float:
         self.clear_train_load()
         delta_load = 1000
-        while delta_load > 10:
+        while delta_load > 1:
             dead_zones = self.dead_zones(dx=dx)
             if len(dead_zones) > 0:
                 if self._bridge.train_load() < delta_load:
