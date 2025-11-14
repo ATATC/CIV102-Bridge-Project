@@ -66,6 +66,7 @@ class Evaluator(object):
         self.set_to_minimal()
         delta_mass = 1000
         while delta_mass > 10:
+            print(self._bridge.train_mass())
             dead_zones = self.dead_zones(dx=dx)
             if len(dead_zones) > 0:
                 if self._bridge.train_mass() < delta_mass:
@@ -73,6 +74,7 @@ class Evaluator(object):
                 delta_mass *= .5
                 self._bridge.add_train_mass(-delta_mass)
             else:
+                delta_mass *= 2
                 self._bridge.add_train_mass(delta_mass)
         try:
             return self._bridge.train_mass()
