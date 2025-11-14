@@ -28,8 +28,8 @@ class Evaluator(object):
         self._bridge.move_the_train(self._real_train_position)
 
     def n(self, *, dx: float = 1) -> int:
-        return int(
-            (self._bridge.length() + self._bridge.wheel_positions()[0] - self._bridge.wheel_positions()[-1] / dx))
+        wp = self._bridge.wheel_positions()
+        return int((self._bridge.length() + wp[0] - wp[-1] / dx))
 
     def pass_the_train(self, *, dx: float = 1) -> tuple[list[float], list[float], list[float]]:
         safety_factors_compressive, safety_factors_tensile, safety_factors_shear = [], [], []

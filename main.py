@@ -3,6 +3,6 @@ from initialization import *
 
 if __name__ == "__main__":
     evaluator = Evaluator(bridge, 6, 30, 4)
-    print("Maximum load:", evaluator.maximum_load())
+    print("Maximum load (N):", evaluator.maximum_load())
     if GRAPH:
         evaluator.plot_safety_factors()
