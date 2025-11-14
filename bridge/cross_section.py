@@ -11,7 +11,7 @@ class CrossSection(object, metaclass=ABCMeta):
     @abstractmethod
     def centroid(self) -> tuple[float, float]:
         """
-        :return: (x_hat, y_hat)
+        :return: (x_bar, y_bar)
         """
         raise NotImplementedError
 
@@ -33,9 +33,6 @@ class CrossSection(object, metaclass=ABCMeta):
     @abstractmethod
     def area_above(self, y: float) -> float:
         raise NotImplementedError
-
-    def mass(self, length: float, density: float) -> float:
-        return length * density * self.area()
 
     @abstractmethod
     def q(self, y: float) -> float:
@@ -161,11 +158,10 @@ class ComplexCrossSection(CrossSection):
         return max(cs.height() + y_offset for cs, _, y_offset in self.basic_cross_sections)
 
     def d_squared(self, i: int) -> float:
-        x_hat, y_hat = self.centroid()
+        x_bar, y_bar = self.centroid()
         cs, x_offset, y_offset = self.basic_cross_sections[i]
         cx, cy = cs.centroid()
-        # return (x_hat - x_offset - cx) ** 2 + (y_hat - y_offset - cy) ** 2
-        return (y_hat - y_offset - cy) ** 2
+        return (y_bar - y_offset - cy) ** 2
 
     def d(self, i: int) -> float:
         return self.d_squared(i) ** .5
