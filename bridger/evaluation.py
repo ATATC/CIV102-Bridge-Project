@@ -56,13 +56,13 @@ class Evaluator(object):
         return intervals((c < self._safety_factor_threshold) | (t < self._safety_factor_threshold) | (
                 s < self._safety_factor_threshold), dx=dx)
 
-    def plot_safety_factors(self, *, safety_factor_threshold: float = 1, dx: float = 1) -> None:
+    def plot_safety_factors(self, *, dx: float = 1) -> None:
         c, t, s = self.pass_the_train(dx=dx)
         plt.figure(figsize=(12, 6))
         plt.plot(c, "orange")
         plt.plot(t, "purple")
         plt.plot(s, "blue")
-        plt.hlines(safety_factor_threshold, 0, self.n(dx=dx), "red")
+        plt.hlines(self._safety_factor_threshold, 0, self.n(dx=dx), "red")
         plt.grid(True)
         plt.title("Safety Factor on Various Positions")
         plt.xlabel("Train Position (mm)")
