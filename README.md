@@ -153,7 +153,7 @@ The maximum load is 439.4765625 N, limited by compression
 ### Complex Cross-sections
 
 To construct a cross-section consisting of multiple basic cross-sections, you need to know the x and y offsets of each
-component. We use the common sign convention that the origin of each relative coordinate system is at the bottom-left
+component. We use the common sign convention that the origin of each relative coordinate system is in the bottom-left
 corner.
 
 #### Hollow Square HSS 305x305x13
