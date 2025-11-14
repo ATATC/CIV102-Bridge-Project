@@ -37,22 +37,22 @@ class Evaluator(object):
 
     def pass_the_train(self, *, dx: float = 1) -> tuple[list[float], list[float], list[float]]:
         self.clear_position()
-        safety_factors_top = []
-        safety_factors_bot = []
+        safety_factors_compression = []
+        safety_factors_tension = []
         safety_factors_shear = []
         for _ in range(self.n(dx=dx)):
             c, t = self._bridge.safety_factor((self._safe_compressive_stress, self._safe_tensile_stress))
-            safety_factors_top.append(c)
-            safety_factors_bot.append(t)
+            safety_factors_compression.append(c)
+            safety_factors_tension.append(t)
             s = self._bridge.shear_safety_factor(self._safe_shear_stress)
             safety_factors_shear.append(s)
             self._bridge.move_the_train(dx)
         self.reset_position()
-        return safety_factors_top, safety_factors_bot, safety_factors_shear
+        return safety_factors_compression, safety_factors_tension, safety_factors_shear
 
-    def dead_zones(self, *, dx: float = 1) -> list[tuple[float, float]]:
-        c, t, s = self.pass_the_train(dx=dx)
-        c, t, s = np.array(c), np.array(t), np.array(s)
+    def dead_zones(self, safety_factors_compression: list[float], safety_factors_tension: list[float],
+                   safety_factors_shear: list[float], *, dx: float = 1) -> list[tuple[float, float]]:
+        c, t, s = np.array(safety_factors_compression), np.array(safety_factors_tension), np.array(safety_factors_shear)
         return intervals((c < self._safety_factor_threshold) | (t < self._safety_factor_threshold) | (
                 s < self._safety_factor_threshold), dx=dx)
 
@@ -72,20 +72,29 @@ class Evaluator(object):
         plt.show()
         plt.close()
 
-    def maximum_load(self, *, dx: float = 1) -> float:
+    def maximum_load(self, *, dx: float = 1) -> tuple[float, list[str]]:
         self.clear_train_load()
         delta_load = 1000
+        causes = []
         while delta_load > 1:
-            dead_zones = self.dead_zones(dx=dx)
+            causes.clear()
+            c, t, s = self.pass_the_train(dx=dx)
+            if (np.array(c) < self._safety_factor_threshold).any():
+                causes.append("compression")
+            if (np.array(t) < self._safety_factor_threshold).any():
+                causes.append("tension")
+            if (np.array(s) < self._safety_factor_threshold).any():
+                causes.append("shear")
+            dead_zones = self.dead_zones(c, t, s, dx=dx)
             if len(dead_zones) > 0:
                 if self._bridge.train_load() < delta_load:
-                    return 0
+                    return 0, causes
                 delta_load *= .5
                 self._bridge.add_train_load(-delta_load)
             else:
                 delta_load *= 2
                 self._bridge.add_train_load(delta_load)
         try:
-            return self._bridge.train_load()
+            return self._bridge.train_load(), causes
         finally:
             self.reset_train_load()
