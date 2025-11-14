@@ -28,7 +28,8 @@ class Evaluator(object):
         self._bridge.move_the_train(self._real_train_position)
 
     def n(self, *, dx: float = 1) -> int:
-        return int((self._bridge.length() - self._bridge.wheel_positions()[-1] / dx))
+        return int(
+            (self._bridge.length() + self._bridge.wheel_positions()[0] - self._bridge.wheel_positions()[-1] / dx))
 
     def pass_the_train(self, *, dx: float = 1) -> tuple[list[float], list[float], list[float]]:
         safety_factors_compressive, safety_factors_tensile, safety_factors_shear = [], [], []
@@ -66,7 +67,6 @@ class Evaluator(object):
         self.set_to_minimal()
         delta_mass = 1000
         while delta_mass > 10:
-            print(self._bridge.train_mass())
             dead_zones = self.dead_zones(dx=dx)
             if len(dead_zones) > 0:
                 if self._bridge.train_mass() < delta_mass:

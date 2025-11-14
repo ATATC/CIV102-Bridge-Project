@@ -1,5 +1,5 @@
-from typing import Sequence, override
 from abc import ABCMeta, abstractmethod
+from typing import Sequence, override
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -37,7 +37,7 @@ class Bridge(object, metaclass=ABCMeta):
         self._wheel_positions += step_size
 
     def add_train_mass(self, delta_mass: float) -> None:
-        self._train_mass += delta_mass
+        self.train_mass(train_mass=self._train_mass + delta_mass)
 
     @abstractmethod
     def ultimate_stress(self) -> tuple[float, float]:
@@ -142,7 +142,7 @@ class BeamBridge(Bridge):
     @override
     def ultimate_stress(self) -> tuple[float, float]:
         m = self.bending_moments()
-        m_max = max(max(m), -min(m))
+        m_max = max(abs(max(m)), abs(min(m)))
         i = self._cross_section.moment_of_inertia()
         h = self._cross_section.height()
         return m_max * (h - self._cross_section.centroid()[1]) / i, m_max * self._cross_section.centroid()[1] / i
@@ -150,4 +150,6 @@ class BeamBridge(Bridge):
     @override
     def ultimate_shear_stress(self) -> float:
         cs = self._cross_section
-        return max(self.shear_forces()) * cs.q_max() / cs.moment_of_inertia() / cs.min_width()
+        v = self.shear_forces()
+        v_max = max(abs(max(v)), abs(min(v)))
+        return v_max * cs.q_max() / cs.moment_of_inertia() / cs.min_width()
