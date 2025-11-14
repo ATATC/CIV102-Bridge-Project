@@ -250,7 +250,7 @@ class HollowBeam(ComplexCrossSection):
             (RectangularCrossSection(thickness, h), 0, 0),
             (RectangularCrossSection(thickness, h), b - thickness, 0),
             (RectangularCrossSection(b - 2 * thickness, thickness), 0, thickness),
-            (RectangularCrossSection(b - 2 * thickness, thickness), b - thickness, thickness),
+            (RectangularCrossSection(b - 2 * thickness, thickness), b - thickness, thickness)
         ])
 
 
@@ -259,7 +259,7 @@ class IBeam(ComplexCrossSection):
         super().__init__([
             (RectangularCrossSection(bf, t), 0, 0),
             (RectangularCrossSection(bw, d - 2 * t), .5 * (bf - bw), t),
-            (RectangularCrossSection(bf, t), 0, d - t),
+            (RectangularCrossSection(bf, t), 0, d - t)
         ])
 
 
@@ -287,7 +287,7 @@ class CIV102Beam(ComplexCrossSection):
             (RectangularCrossSection(outreach, thickness), right - thickness - outreach, height - thickness),
             (RectangularCrossSection(thickness, height - thickness), left, thickness),
             (RectangularCrossSection(thickness, height - thickness), right - thickness, thickness),
-            (RectangularCrossSection(bottom, thickness), left, 0),  # bottom beam
+            (RectangularCrossSection(bottom, thickness), left, 0)  # bottom beam
         ])
 
 
@@ -295,7 +295,7 @@ if __name__ == "__main__":
     cross_section = ComplexCrossSection([
         (RectangularCrossSection(423, 43), 0, 0),
         (RectangularCrossSection(24, 847), 199.5, 43),
-        (RectangularCrossSection(423, 43), 0, 890),
+        (RectangularCrossSection(423, 43), 0, 890)
     ])
     # cross_section = IBeam(933, 423, 43, 24)
     print(cross_section.centroid())
