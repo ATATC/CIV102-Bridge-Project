@@ -1,3 +1,5 @@
+from os import PathLike
+
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -56,7 +58,7 @@ class Evaluator(object):
         return intervals((c < self._safety_factor_threshold) | (t < self._safety_factor_threshold) | (
                 s < self._safety_factor_threshold), dx=dx)
 
-    def plot_safety_factors(self, *, dx: float = 1) -> None:
+    def plot_safety_factors(self, *, dx: float = 1, save_as: str | PathLike[str] | None = None) -> None:
         c, t, s = self.pass_the_train(dx=dx)
         plt.figure(figsize=(12, 6))
         plt.plot(c, "orange")
@@ -68,7 +70,8 @@ class Evaluator(object):
         plt.xlabel("Train Position (mm)")
         plt.ylabel("Safety Factor")
         plt.legend(("Compressive", "Tensile", "Shear", "Failure Threshold"))
-        plt.savefig("safety_factors.png")
+        if save_as:
+            plt.savefig(save_as)
         plt.show()
         plt.close()
 
