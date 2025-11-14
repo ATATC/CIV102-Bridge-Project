@@ -1,4 +1,4 @@
-from bridge import *
+from bridger import *
 from initialization import *
 
 if __name__ == "__main__":

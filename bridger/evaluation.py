@@ -1,9 +1,9 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-from bridge.material import Material
-from bridge.prototype import Bridge
-from bridge.utils import intervals
+from bridger.material import Material
+from bridger.prototype import Bridge
+from bridger.utils import intervals
 
 
 class Evaluator(object):
