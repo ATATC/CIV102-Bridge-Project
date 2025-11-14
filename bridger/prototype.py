@@ -93,7 +93,7 @@ class BeamBridge(Bridge):
         r_start, r_end = self.reaction_forces()
         v = [r_start]
         for p in self._loads:
-            v.append(v[-1] - p)
+            v.append(float(v[-1] - p))
         v.append(v[-1] + r_end)
         return v
 
@@ -122,10 +122,10 @@ class BeamBridge(Bridge):
 
     def bending_moments(self) -> list[float]:
         v = self.shear_forces()
-        m = [0]
         positions = [0, *self._wheel_positions, self._length]
+        m = [positions[0]]
         for i in range(1, len(v)):
-            m.append(m[-1] + v[i - 1] * (positions[i] - positions[i - 1]))
+            m.append(float(m[-1] + v[i - 1] * (positions[i] - positions[i - 1])))
         return m
 
     def expanded_bending_moments(self, x: np.ndarray) -> np.ndarray:
@@ -155,7 +155,8 @@ class BeamBridge(Bridge):
         m_max = max(abs(max(m)), abs(min(m)))
         i = self._cross_section.moment_of_inertia()
         h = self._cross_section.height()
-        return m_max * (h - self._cross_section.centroid()[1]) / i, m_max * self._cross_section.centroid()[1] / i
+        y_bar = self._cross_section.centroid()[1]
+        return m_max * (h - y_bar) / i, m_max * y_bar / i
 
     @override
     def ultimate_shear_stress(self) -> float:
