@@ -10,6 +10,9 @@ class CrossSection(object, metaclass=ABCMeta):
 
     @abstractmethod
     def centroid(self) -> tuple[float, float]:
+        """
+        :return: (x_hat, y_hat)
+        """
         raise NotImplementedError
 
     @abstractmethod
