@@ -105,7 +105,7 @@ class BeamBridge(Bridge):
         v[x > self._length] = v0[-1]
         return v
 
-    def sfd(self, *, dx: float = 1) -> None:
+    def plot_sfd(self, *, dx: float = 1) -> None:
         x = self.x_linespace(dx=dx)
         v = self.expanded_shear_forces(x)
         plt.figure(figsize=(12, 6))
@@ -131,7 +131,7 @@ class BeamBridge(Bridge):
             m[i] = m[i - 1] + v[i - 1] * (x[i] - x[i - 1])
         return m
 
-    def bmd(self, *, dx: float = 1) -> None:
+    def plot_bmd(self, *, dx: float = 1) -> None:
         x = self.x_linespace(dx=dx)
         v = self.expanded_bending_moments(x) * 1e-3
         plt.figure(figsize=(12, 6))
