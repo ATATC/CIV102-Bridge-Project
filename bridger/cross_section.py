@@ -257,9 +257,9 @@ class HollowBeam(ComplexCrossSection):
 class IBeam(ComplexCrossSection):
     def __init__(self, d: float, bf: float, t: float, bw: float) -> None:
         super().__init__([
-            (RectangularCrossSection(bf, t), 0, 0),
+            (RectangularCrossSection(bf, t), 0, 0),  # bottom beam
             (RectangularCrossSection(bw, d - 2 * t), .5 * (bf - bw), t),
-            (RectangularCrossSection(bf, t), 0, d - t)
+            (RectangularCrossSection(bf, t), 0, d - t)  # top beam
         ])
 
 
