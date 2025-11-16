@@ -1,9 +1,15 @@
 from abc import ABCMeta, abstractmethod
 from math import pi
-from typing import override, Literal, Sequence, Self
+from typing import override, Literal, Sequence, Self, Any
 
 
 class CrossSection(object, metaclass=ABCMeta):
+    def __init__(self, **kwargs) -> None:
+        self._kwargs: dict[str, Any] = kwargs
+
+    def kwargs(self) -> dict[str, Any]:
+        return self._kwargs
+
     @abstractmethod
     def moment_of_inertia(self) -> float:
         raise NotImplementedError
@@ -48,6 +54,7 @@ class CrossSection(object, metaclass=ABCMeta):
 
 class RectangularCrossSection(CrossSection):
     def __init__(self, b: float, h: float) -> None:
+        super().__init__(b=b, h=h)
         self.b: float = b
         self.h: float = h
 
@@ -93,6 +100,7 @@ class RectangularCrossSection(CrossSection):
 
 class CircularCrossSection(CrossSection):
     def __init__(self, r: float) -> None:
+        super().__init__(r=r)
         self.r: float = r
         self.d: float = 2 * r
 
@@ -143,6 +151,10 @@ class ComplexCrossSection(CrossSection):
         """
         :param basic_cross_sections: [(cross_section, x_offset, y_offset)]
         """
+        kwargs = {}
+        for cs, x_offset, y_offset in basic_cross_sections:
+            kwargs.update({f"{k}({x_offset}, {y_offset})": v for k, v in cs.kwargs().items()})
+        super().__init__(**kwargs)
         self.basic_cross_sections: list[tuple[CrossSection, float, float]] = list(basic_cross_sections)
 
     @override
@@ -252,6 +264,7 @@ class HollowBeam(ComplexCrossSection):
             (RectangularCrossSection(thickness, h - 2 * thickness), b - thickness, thickness),
             (RectangularCrossSection(b, thickness), 0, h - thickness)  # top beam
         ])
+        self._kwargs = {"b": b, "h": h, "thickness": thickness}
 
 
 class IBeam(ComplexCrossSection):
@@ -261,6 +274,7 @@ class IBeam(ComplexCrossSection):
             (RectangularCrossSection(bw, d - 2 * t), .5 * (bf - bw), t),
             (RectangularCrossSection(bf, t), 0, d - t)  # top beam
         ])
+        self._kwargs = {"d": d, "bf": bf, "t": t, "bw": bw}
 
 
 class CIV102Beam(ComplexCrossSection):
@@ -289,6 +303,7 @@ class CIV102Beam(ComplexCrossSection):
             (RectangularCrossSection(thickness, height - thickness), right - thickness, thickness),
             (RectangularCrossSection(bottom, thickness), left, 0)  # bottom beam
         ])
+        self._kwargs = {"top": top, "bottom": bottom, "height": height, "thickness": thickness, "outreach": outreach}
 
 
 if __name__ == "__main__":
