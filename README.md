@@ -150,6 +150,25 @@ It returns a float number representing the maximum load and a list of strings re
 The maximum load is 439.4765625 N, limited by compression
 ```
 
+### Centroid of a Cross-section
+
+```python
+from bridger import *
+
+cross_section = CIV102Beam()
+print(cross_section.centroid())  # (49.99999999999999, 41.43109435192319)
+```
+
+### First Moment of Area
+
+```python
+from bridger import *
+
+cross_section = CIV102Beam()
+print(cross_section.q(cross_section.centroid()[1]))  # 1431.126711540044
+print(cross_section.q_max())  # 1431.126711540044
+```
+
 ### Complex Cross-sections
 
 To construct a cross-section consisting of multiple basic cross-sections, you need to know the x and y offsets of each
