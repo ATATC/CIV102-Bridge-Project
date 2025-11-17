@@ -54,6 +54,10 @@ class Bridge(object, metaclass=ABCMeta):
     def ultimate_shear_stress(self) -> float:
         raise NotImplementedError
 
+    @abstractmethod
+    def ultimate_glue_shear_stress(self) -> float:
+        raise NotImplementedError
+
     def safety_factor(self, safe_stress: tuple[float, float]) -> tuple[float, float]:
         """
         :param safe_stress: (compressive, tensile)
@@ -63,6 +67,15 @@ class Bridge(object, metaclass=ABCMeta):
         return safe_stress[0] / compressive, safe_stress[1] / tensile
 
     def shear_safety_factor(self, safe_stress: float) -> float:
+        return safe_stress / self.ultimate_shear_stress()
+
+    def glue_safety_factor(self, safe_stress: float) -> float:
+        return safe_stress / self.ultimate_glue_shear_stress()
+
+    def flexural_buckling_safety_factor(self, safe_stress: float) -> float:
+        return safe_stress / self.ultimate_stress()[0]
+
+    def shear_buckling_safety_factor(self, safe_stress: float) -> float:
         return safe_stress / self.ultimate_shear_stress()
 
 
@@ -171,3 +184,8 @@ class BeamBridge(Bridge):
         v = self.shear_forces()
         v_max = max(abs(max(v)), abs(min(v)))
         return v_max * cs.q_max() / cs.moment_of_inertia() / cs.min_width()
+
+    @override
+    def ultimate_glue_shear_stress(self) -> float:
+        # todo
+        ...
