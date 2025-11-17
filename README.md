@@ -224,8 +224,8 @@ print(cross_section.moment_of_inertia() * 1e-6)  # 8424.6495395
 
 ## Optimization
 
-All design choices in this project are Convex Optimization Problems (COPs). We explore a small region at a time in the
-high-dimensional parameter space and descend to the minimum of the objective function.
+All design choices in this project are Convex Optimization Problems (COPs). By default, we use differential evolution
+to solve them. We also provide a more intuitive grid search approach. 
 
 There is a much better way to implement the whole framework, that is to calculate everything in tensors using PyTorch.
 However, since it takes a lot of time to come up with a differentiable algorithm to find the cross-section properties,
@@ -234,8 +234,8 @@ instead of NumPy so that you can use gradient-based optimization to replace the 
 
 ### Cross-section Optimization
 
-The following example is optimizing the cross-section dimensions when the width of the matboard is 813, so that the
-surface lengths of the cross-section must add up to 406.5 and the top must be wider than the bottom. There are some
+The following example is optimizing the cross-section dimensions when the width of the matboard is 508, so that the
+surface lengths of the cross-section must add up to 508 and the top must be wider than the bottom. There are some
 other constraints applied to the range of the parameters. See details in the project handout.
 
 ```python
@@ -250,7 +250,7 @@ def constraint(kwargs: dict[str, float]) -> dict[str, float] | None:
     kwargs["outreach"] = .5 * (matboard_width - used)
     return kwargs if 2 * kwargs["outreach"] < bottom else None
 
-matboard_width = 813 * .5
+matboard_width = 508
 cross_section = CIV102Beam()
 bridge = BeamBridge(452, cross_section)
 evaluator = Evaluator(bridge, Material())
@@ -266,7 +266,7 @@ print(cross_section.kwargs(), load)
 It takes about 10 seconds to finish searching.
 
 ```text
-{'top': 100.0, 'bottom': 16.0, 'height': 140.0, 'thickness': 1.27, 'outreach': 7.789999999999992} 811.5076577439701
+{'top': 100.19263813082604, 'bottom': 20.595902852387866, 'height': 185.87537444130072, 'thickness': 1.27, 'outreach': 10.27035506709231} 1224.8071442524615
 ```
 
 ## Team 602
