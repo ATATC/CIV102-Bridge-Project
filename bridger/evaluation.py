@@ -77,6 +77,14 @@ class Evaluator(object):
         plt.close()
 
     def maximum_load(self) -> tuple[float, str]:
+        """
+        Assuming that safety factors are inversely proportional to the load, define a linear system FOS(P)=1/f(P). We
+        want to find P_max that gives FOS_min, which is 1: FOS(P_max)=1/f(P_max)=1 and FOS(1)=1/f(1). Since
+        df(P)/dP is a constant, we have f(P_max)/P_max=f(1)/1. Substitute f(P_max)=1 and f(1)=1/FOS(1) into it:
+        1/P_max=1/FOS(1) -> P_max=FOS(1). Therefore, the maximum load is just the smallest safety factor when we apply
+        a virtual load of one Newton.
+        :return: (maximum load, cause)
+        """
         self.clear_train_load()
         c, t = self._bridge.safety_factor((self._safe_compressive_stress, self._safe_tensile_stress))
         s = self._bridge.shear_safety_factor(self._safe_shear_stress)
