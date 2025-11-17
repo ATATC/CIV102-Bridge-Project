@@ -45,18 +45,39 @@ def grid_search(param_ranges: dict[str, tuple[float, float, float]],
 def de_search(param_ranges: dict[str, tuple[float, float, float]], criterion: Callable[[dict[str, float]], float],
               constraint: Constraint | None) -> tuple[dict[str, float], float]:
     param_names: list[str] = list(param_ranges.keys())
-    bounds: list[tuple[float, float]] = [(start, end) for (start, end, _) in param_ranges.values()]
+    grids: list[np.ndarray] = []
+    bounds: list[tuple[float, float]] = []
+    for (start, end, step) in param_ranges.values():
+        values = np.arange(start, end + step, step, dtype=float)
+        grids.append(values)
+        bounds.append((0, len(values) - 1))
+
+    def vector_to_params(x: np.ndarray) -> dict[str, float]:
+        indices = []
+        for i, xi in enumerate(x):
+            grid = grids[i]
+            idx = int(np.round(xi))
+            if idx < 0:
+                idx = 0
+            elif idx >= len(grid):
+                idx = len(grid) - 1
+            indices.append(idx)
+        return dict(zip(param_names, [grids[i][idx] for i, idx in enumerate(indices)]))
+
     def objective(x: np.ndarray) -> float:
-        current_params = dict(zip(param_names, x.tolist()))
+        current_params = vector_to_params(x)
         if constraint:
             current_params = constraint(current_params)
             if current_params is None:
-                return 1e12
+                return float("inf")
         return -criterion(current_params)
-    best_vector = differential_evolution(objective, bounds=bounds, polish=True).x
-    best_params = dict(zip(param_names, best_vector.tolist()))
+
+    result = differential_evolution(objective, bounds=bounds, polish=True)
+    best_params = vector_to_params(result.x)
     if constraint:
-        best_params = constraint(best_params) or best_params
+        constrained = constraint(best_params)
+        if constrained is not None:
+            best_params = constrained
     best_score = criterion(best_params)
     return best_params, best_score
 
