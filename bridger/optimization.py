@@ -8,9 +8,12 @@ from bridger.prototype import BeamBridge
 from bridger.evaluation import Evaluator
 
 
+type Constraint = Callable[[dict[str, float]], dict[str, float] | None]
+
+
 def grid_search(param_ranges: dict[str, tuple[float, float, float]],
                 criterion: Callable[[dict[str, float]], float],
-                constraint: Callable[[dict[str, float]], dict[str, float]] | None) -> tuple[dict[str, float], float]:
+                constraint: Constraint | None) -> tuple[dict[str, float], float]:
     best_params = {}
     best_score = 0
     param_values = []
@@ -25,12 +28,16 @@ def grid_search(param_ranges: dict[str, tuple[float, float, float]],
             current_params = dict(zip(param_names, params))
             if constraint:
                 current_params = constraint(current_params)
+                if current_params is None:
+                    progress.update(task, advance=1)
+                    continue
             score = criterion(current_params)
             if score > best_score:
                 best_score = score
                 best_params = current_params
                 progress.update(task, description=f"[green]Best score: {best_score:.2f}")
             progress.update(task, advance=1)
+        progress.update(task, description="Finished")
     return best_params, best_score
 
 
@@ -47,23 +54,20 @@ class BeamOptimizer(object):
         self._bridge.cross_section(cross_section=self._cs_type(**params))
         return self._evaluator.maximum_load()[0]
 
-    def optimize_cross_section(self, *, range_ratios: tuple[float, float] = (.5, 2),
+    def optimize_cross_section(self, param_ranges: dict[str, tuple[float, float, float]], *,
                                independent_params: Sequence[str] | None = None,
-                               constraint: Callable[[dict[str, float]], dict[str, float]] | None = None,
-                               dx_p: float = .1) -> tuple[CrossSection, float]:
+                               constraint: Constraint | None = None) -> tuple[CrossSection, float]:
         """
-        :param range_ratios: range is defined as v*range_ratios
+        :param param_ranges: parameter ranges like (start, end, step)
         :param independent_params: names of the independent variables
-        :param constraint: a function that fills the dependent variables
-        :param dx_p: dx=v*dx_p
-        :return:
+        :param constraint: a function that fills the dependent variables or returns None if the parameters are not valid
+        :return: (best cross-section, maximum load)
         """
         cs = self._bridge.cross_section()
         kwargs = cs.kwargs()
         if independent_params:
-            for key in kwargs.keys():
+            for key in kwargs.copy().keys():
                 if key not in independent_params:
                     kwargs.pop(key)
-        param_ranges = {name: (val * range_ratios[0], val * range_ratios[1], val * dx_p) for name, val in kwargs.items()}
         best_params, best_load = grid_search(param_ranges, lambda x: self.load_criterion(x), constraint)
         return self._cs_type(**best_params), best_load
