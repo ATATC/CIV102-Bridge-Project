@@ -1,7 +1,6 @@
 from os import PathLike
 
 import numpy as np
-import torch
 from matplotlib import pyplot as plt
 
 from bridger.material import Material
@@ -22,13 +21,13 @@ class Evaluator(object):
     def bridge(self) -> Bridge:
         return self._bridge
 
-    def clear_position(self) -> None:
+    def clear_train_position(self) -> None:
         self._bridge.place_the_train(0)
 
     def clear_train_load(self) -> None:
         self._bridge.train_load(train_load=1)
 
-    def reset_position(self) -> None:
+    def reset_train_position(self) -> None:
         self._bridge.place_the_train(self._real_train_position)
 
     def reset_train_load(self) -> None:
@@ -39,7 +38,7 @@ class Evaluator(object):
         return int((self._bridge.length() + wp[0] - wp[-1] / dx))
 
     def pass_the_train(self, *, dx: float = 1) -> tuple[list[float], list[float], list[float]]:
-        self.clear_position()
+        self.clear_train_position()
         safety_factors_compression = []
         safety_factors_tension = []
         safety_factors_shear = []
@@ -50,7 +49,7 @@ class Evaluator(object):
             s = self._bridge.shear_safety_factor(self._safe_shear_stress)
             safety_factors_shear.append(s)
             self._bridge.move_the_train(dx)
-        self.reset_position()
+        self.reset_train_position()
         return safety_factors_compression, safety_factors_tension, safety_factors_shear
 
     def dead_zones(self, safety_factors_compression: list[float], safety_factors_tension: list[float],
