@@ -1,6 +1,7 @@
 from os import PathLike
 
 import numpy as np
+import torch
 from matplotlib import pyplot as plt
 
 from bridger.material import Material
@@ -75,29 +76,10 @@ class Evaluator(object):
         plt.show()
         plt.close()
 
-    def maximum_load(self, *, dx: float = 1) -> tuple[float, list[str]]:
+    def maximum_load(self) -> tuple[float, str]:
         self.clear_train_load()
-        delta_load = 1000
-        causes = []
-        while delta_load > 1:
-            causes.clear()
-            c, t, s = self.pass_the_train(dx=dx)
-            if (np.array(c) < self._safety_factor_threshold).any():
-                causes.append("compression")
-            if (np.array(t) < self._safety_factor_threshold).any():
-                causes.append("tension")
-            if (np.array(s) < self._safety_factor_threshold).any():
-                causes.append("shear")
-            dead_zones = self.dead_zones(c, t, s, dx=dx)
-            if len(dead_zones) > 0:
-                if self._bridge.train_load() < delta_load:
-                    return 0, causes
-                delta_load *= .5
-                self._bridge.add_train_load(-delta_load)
-            else:
-                delta_load *= 2
-                self._bridge.add_train_load(delta_load)
-        try:
-            return self._bridge.train_load(), causes
-        finally:
-            self.reset_train_load()
+        c, t = self._bridge.safety_factor((self._safe_compressive_stress, self._safe_tensile_stress))
+        s = self._bridge.shear_safety_factor(self._safe_shear_stress)
+        safety_factors = {"compression": c, "tension": t, "shear": s}
+        cause = min(safety_factors.keys(), key=lambda x: safety_factors[x])
+        return safety_factors[cause], cause

@@ -140,11 +140,11 @@ from bridger import *
 cross_section = CIV102Beam()
 bridge = BeamBridge(452, cross_section)
 evaluator = Evaluator(bridge, Material(), safety_factor_threshold=.95)
-max_load, causes = evaluator.maximum_load()
-print(f"Maximum load is {max_load} N, limited by {" and ".join(causes)}")
+max_load, cause = evaluator.maximum_load()
+print(f"Maximum load is {max_load} N, limited by {cause}")
 ```
 
-It returns a float number representing the maximum load and a list of strings representing the reasons.
+It returns a float number representing the maximum load and a string representing the reason.
 
 ```text
 The maximum load is 439.4765625 N, limited by compression
