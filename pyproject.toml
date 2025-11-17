@@ -12,7 +12,7 @@ requires-python = ">=3.12"
 authors = [
     { name = "Tianhao Fu", email = "terry.fu@projectneura.org" }
 ]
-dependencies = ["mipcandy", "numpy", "matplotlib"]
+dependencies = ["mipcandy", "numpy", "matplotlib", "rich"]
 
 [tool.hatch.build.targets.sdist]
 only-include = ["bridger"]

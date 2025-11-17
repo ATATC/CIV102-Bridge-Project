@@ -1,6 +1,7 @@
-from typing import Callable, TypedDict
+from typing import Callable
 
 import numpy as np
+from rich.progress import Progress, SpinnerColumn
 
 from bridger.cross_section import CrossSection
 from bridger.prototype import BeamBridge
@@ -16,12 +17,17 @@ def grid_search(param_ranges: dict[str, tuple[float, float, float]], criterion: 
     for name, (start, end, step) in param_ranges.items():
         param_names.append(name)
         param_values.append(np.arange(start, end + step, step))
-    for params in np.array(np.meshgrid(*param_values)).T.reshape(-1, len(param_names)):
-        current_params = dict(zip(param_names, params))
-        score = criterion(**current_params)
-        if score > best_score:
-            best_score = score
-            best_params = current_params
+    with Progress(*Progress.get_default_columns(), SpinnerColumn()) as progress:
+        param_space = np.array(np.meshgrid(*param_values)).T.reshape(-1, len(param_names))
+        task = progress.add_task("[green]Searching...", total=len(param_space))
+        for params in param_space:
+            current_params = dict(zip(param_names, params))
+            score = criterion(current_params)
+            if score > best_score:
+                best_score = score
+                best_params = current_params
+                progress.update(task, description=f"[green]Best score: {best_score:.2f}")
+            progress.update(task, advance=1)
     return best_params, best_score
 
 
