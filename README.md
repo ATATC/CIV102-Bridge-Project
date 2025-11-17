@@ -266,7 +266,7 @@ print(cross_section.kwargs(), load)
 It takes about 10 seconds to finish searching.
 
 ```text
-{'top': 100.19263813082604, 'bottom': 20.595902852387866, 'height': 185.87537444130072, 'thickness': 1.27, 'outreach': 10.27035506709231} 1224.8071442524615
+{'top': 100.0, 'bottom': 27.0, 'height': 180.0, 'thickness': 1.27, 'outreach': 13.039999999999992} 1223.092565759034
 ```
 
 ## Team 602
