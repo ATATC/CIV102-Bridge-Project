@@ -35,7 +35,7 @@ def grid_search(param_ranges: dict[str, tuple[float, float, float]],
             if score > best_score:
                 best_score = score
                 best_params = current_params
-                progress.update(task, description=f"[green]Best score: {best_score:.2f}")
+                progress.update(task, description=f"[green]Searching... ({best_score:.2f} N)")
             progress.update(task, advance=1)
         progress.update(task, description="Finished")
     return best_params, best_score
