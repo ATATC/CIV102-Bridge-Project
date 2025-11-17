@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 
 from initialization import *
 
-if __name__ == "__main__":
+def plot_envelopes() -> None:
     bridge.move_the_train(-bridge.wheel_positions()[0])
     shear_forces = []
     bending_moments = []
@@ -34,3 +34,7 @@ if __name__ == "__main__":
         plt.savefig("bending_moment_envelope.png")
         plt.show()
         plt.close()
+
+
+if __name__ == "__main__":
+    plot_envelopes()

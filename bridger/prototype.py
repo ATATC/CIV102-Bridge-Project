@@ -74,6 +74,11 @@ class BeamBridge(Bridge):
         self._length: float = length
         self._cross_section: CrossSection = cross_section
 
+    def cross_section(self, *, cross_section: CrossSection | None = None) -> CrossSection | None:
+        if cross_section is None:
+            return self._cross_section
+        self._cross_section = cross_section
+
     @override
     def length(self) -> float:
         return self._length

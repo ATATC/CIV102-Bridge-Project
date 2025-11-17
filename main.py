@@ -1,10 +1,8 @@
-from bridger import *
-from initialization import *
+from plot_envelopes import plot_envelopes
+from plot_safety_factors import plot_safety_factors
+from optimize_cross_section import optimize_cross_section
 
 if __name__ == "__main__":
-    evaluator = Evaluator(bridge, Material())
-    max_load, causes = evaluator.maximum_load()
-    print(f"Maximum load: {max_load} N due to {causes}")
-    evaluator.dead_zones(*evaluator.pass_the_train())
-    if GRAPH:
-        evaluator.plot_safety_factors()
+    plot_envelopes()
+    plot_safety_factors()
+    optimize_cross_section()

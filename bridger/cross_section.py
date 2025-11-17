@@ -1,13 +1,13 @@
 from abc import ABCMeta, abstractmethod
 from math import pi
-from typing import override, Literal, Sequence, Self, Any
+from typing import override, Literal, Sequence, Self
 
 
 class CrossSection(object, metaclass=ABCMeta):
-    def __init__(self, **kwargs) -> None:
-        self._kwargs: dict[str, Any] = kwargs
+    def __init__(self, **kwargs: float) -> None:
+        self._kwargs: dict[str, float] = kwargs
 
-    def kwargs(self) -> dict[str, Any]:
+    def kwargs(self) -> dict[str, float]:
         return self._kwargs
 
     @abstractmethod
