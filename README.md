@@ -139,15 +139,15 @@ from bridger import *
 
 cross_section = CIV102Beam()
 bridge = BeamBridge(452, cross_section)
-evaluator = Evaluator(bridge, Material(), safety_factor_threshold=.95)
+evaluator = Evaluator(bridge, Material())
 max_load, cause = evaluator.maximum_load()
-print(f"Maximum load is {max_load} N, limited by {cause}")
+print(f"The maximum load is {max_load} N, limited by {cause}")
 ```
 
 It returns a float number representing the maximum load and a string representing the reason.
 
 ```text
-The maximum load is 439.4765625 N, limited by compression
+The maximum load is 424.8080839891525 N, limited by compression
 ```
 
 ### Centroid of a Cross-section
@@ -220,6 +220,53 @@ from bridger import *
 
 cross_section = IBeam(933, 423, 43, 24)
 print(cross_section.moment_of_inertia() * 1e-6)  # 8424.6495395
+```
+
+## Optimization
+
+All design choices in this project are Convex Optimization Problems (COPs). We explore a small region at a time in the
+high-dimensional parameter space and descend to the minimum of the objective function.
+
+There is a much better way to implement the whole framework, that is to calculate everything in tensors using PyTorch.
+However, since it takes a lot of time to come up with a differentiable algorithm to find the cross-section properties,
+we choose to stick with the current discrete approach. If you are gifted, you can rewrite the whole thing in PyTorch
+instead of NumPy so that you can use gradient-based optimization to replace the current search-based approach.
+
+### Cross-section Optimization
+
+The following example is optimizing the cross-section dimensions when the width of the matboard is 813, so that the
+surface lengths of the cross-section must add up to 406.5 and the top must be wider than the bottom. There are some
+other constraints applied to the range of the parameters. See details in the project handout.
+
+```python
+from bridger import *
+
+def constraint(kwargs: dict[str, float]) -> dict[str, float] | None:
+    top, bottom, height = kwargs["top"], kwargs["bottom"], kwargs["height"]
+    kwargs["thickness"] = 1.27
+    used = top + bottom + 2 * (height - 2.54)
+    if used > matboard_width or top < bottom:
+        return None
+    kwargs["outreach"] = .5 * (matboard_width - used)
+    return kwargs if 2 * kwargs["outreach"] < bottom else None
+
+matboard_width = 813 * .5
+cross_section = CIV102Beam()
+bridge = BeamBridge(452, cross_section)
+evaluator = Evaluator(bridge, Material())
+optimizer = BeamOptimizer(evaluator)
+cross_section, load = optimizer.optimize_cross_section({
+    "top": (100, matboard_width, 1),
+    "bottom": (10, matboard_width, 1),
+    "height": (20, 200, 20),
+}, independent_params=("top", "bottom", "height"), constraint=constraint)
+print(cross_section.kwargs(), load)
+```
+
+It takes about 10 seconds to finish searching.
+
+```text
+{'top': 100.0, 'bottom': 16.0, 'height': 140.0, 'thickness': 1.27, 'outreach': 7.789999999999992} 811.5076577439701
 ```
 
 ## Team 602
