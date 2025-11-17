@@ -76,7 +76,7 @@ class Evaluator(object):
         plt.show()
         plt.close()
 
-    def maximum_load(self) -> tuple[float, str]:
+    def maximum_load(self, *, dx: float = 1) -> tuple[float, str]:
         """
         Assuming that safety factors are inversely proportional to the load, define a linear system FOS(P)=1/f(P). We
         want to find P_max that gives FOS_min, which is 1: FOS(P_max)=1/f(P_max)=1 and FOS(1)=1/f(1). Since
@@ -86,8 +86,8 @@ class Evaluator(object):
         :return: (maximum load, cause)
         """
         self.clear_train_load()
-        c, t = self._bridge.safety_factor((self._safe_compressive_stress, self._safe_tensile_stress))
-        s = self._bridge.shear_safety_factor(self._safe_shear_stress)
-        safety_factors = {"compression": c, "tension": t, "shear": s}
+        c, t, s = self.pass_the_train(dx=dx)
+        safety_factors = {"compression": min(c), "tension": min(t), "shear": min(s)}
         cause = min(safety_factors.keys(), key=lambda x: safety_factors[x])
+        self.reset_train_load()
         return safety_factors[cause], cause
