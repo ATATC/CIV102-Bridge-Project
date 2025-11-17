@@ -70,6 +70,8 @@ class BeamBridge(Bridge):
     def __init__(self, train_load: float, cross_section: CrossSection, *, length: float = 1200,
                  wheel_positions: Sequence[float] = (172, 348, 512, 688, 852, 1028),
                  load_distribution: Sequence[float] = (1.35, 1.35, 1, 1, 1, 1)) -> None:
+        if length < max(wheel_positions):
+            raise ValueError("Length must be at least the length of the train")
         super().__init__(train_load, wheel_positions, load_distribution)
         self._length: float = length
         self._cross_section: CrossSection = cross_section
