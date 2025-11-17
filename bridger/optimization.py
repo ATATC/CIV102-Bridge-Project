@@ -1,6 +1,7 @@
 from typing import Callable, Sequence
 
 import numpy as np
+from scipy.optimize import differential_evolution
 from rich.progress import Progress, SpinnerColumn
 
 from bridger.cross_section import CrossSection
@@ -41,6 +42,25 @@ def grid_search(param_ranges: dict[str, tuple[float, float, float]],
     return best_params, best_score
 
 
+def de_search(param_ranges: dict[str, tuple[float, float, float]], criterion: Callable[[dict[str, float]], float],
+              constraint: Constraint | None) -> tuple[dict[str, float], float]:
+    param_names: list[str] = list(param_ranges.keys())
+    bounds: list[tuple[float, float]] = [(start, end) for (start, end, _) in param_ranges.values()]
+    def objective(x: np.ndarray) -> float:
+        current_params = dict(zip(param_names, x.tolist()))
+        if constraint:
+            current_params = constraint(current_params)
+            if current_params is None:
+                return 1e12
+        return -criterion(current_params)
+    best_vector = differential_evolution(objective, bounds=bounds, polish=True).x
+    best_params = dict(zip(param_names, best_vector.tolist()))
+    if constraint:
+        best_params = constraint(best_params) or best_params
+    best_score = criterion(best_params)
+    return best_params, best_score
+
+
 class BeamOptimizer(object):
     def __init__(self, evaluator: Evaluator) -> None:
         self._evaluator: Evaluator = evaluator
@@ -69,5 +89,5 @@ class BeamOptimizer(object):
             for key in kwargs.copy().keys():
                 if key not in independent_params:
                     kwargs.pop(key)
-        best_params, best_load = grid_search(param_ranges, lambda x: self.load_criterion(x), constraint)
+        best_params, best_load = de_search(param_ranges, self.load_criterion, constraint)
         return self._cs_type(**best_params), best_load

@@ -3,5 +3,5 @@ from bridger.cross_section import CrossSection, RectangularCrossSection, Circula
 from bridger.evaluation import Evaluator
 from bridger.material import Material
 from bridger.prototype import BeamBridge
-from bridger.optimization import grid_search, BeamOptimizer
+from bridger.optimization import grid_search, de_search, BeamOptimizer
 from bridger.utils import intervals
