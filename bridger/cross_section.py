@@ -2,6 +2,8 @@ from abc import ABCMeta, abstractmethod
 from math import pi
 from typing import override, Literal, Sequence, Self
 
+from bridger.material import Material
+
 
 class CrossSection(object, metaclass=ABCMeta):
     def __init__(self, **kwargs: float) -> None:
@@ -60,6 +62,14 @@ class CrossSection(object, metaclass=ABCMeta):
     def sub_above(self, y: float) -> Self:
         raise NotImplementedError
 
+    @abstractmethod
+    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = True) -> float:
+        raise NotImplementedError
+
+    @abstractmethod
+    def safe_shear_buckling_stress(self, material: Material, length_between_stiffeners: float) -> float:
+        raise NotImplementedError
+
 
 class RectangularCrossSection(CrossSection):
     def __init__(self, b: float, h: float) -> None:
@@ -69,7 +79,7 @@ class RectangularCrossSection(CrossSection):
 
     @override
     def __str__(self) -> str:
-        return f"RectangularCrossSection ({self.b}x{self.h})"
+        return f"RectangularCrossSection({self.b}x{self.h})"
 
     @override
     def moment_of_inertia(self) -> float:
@@ -110,6 +120,17 @@ class RectangularCrossSection(CrossSection):
         self.check_y(y)
         return RectangularCrossSection(self.b, self.h - y)
 
+    @override
+    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = True) -> float:
+        c1 = pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2)
+        c2 = (self.b / self.h) ** 2 if horizontal else (self.h / self.b) ** 2
+        return min(0.425 * c1 * c2, 6 * c1 * 4 * c2)
+
+    @override
+    def safe_shear_buckling_stress(self, material: Material, length_between_stiffeners: float) -> float:
+        return 5 * pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2) * (
+                    (self.b / self.h) ** 2 + (self.b / length_between_stiffeners) ** 2)
+
 
 class CircularCrossSection(CrossSection):
     def __init__(self, r: float) -> None:
@@ -119,7 +140,7 @@ class CircularCrossSection(CrossSection):
 
     @override
     def __str__(self) -> str:
-        return f"CircularCrossSection (radius {self.r})"
+        return f"CircularCrossSection(radius {self.r})"
 
     @override
     def moment_of_inertia(self) -> float:
@@ -162,9 +183,20 @@ class CircularCrossSection(CrossSection):
     def sub_above(self, y: float) -> Self:
         raise NotImplementedError
 
+    @override
+    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = True) -> float:
+        raise NotImplementedError
+
+    @override
+    def safe_shear_buckling_stress(self, material: Material, length_between_stiffeners: float) -> float:
+        raise NotImplementedError
+
+
+type CrossSectionComponent = tuple[CrossSection, float, float]
+
 
 class ComplexCrossSection(CrossSection):
-    def __init__(self, basic_cross_sections: Sequence[tuple[CrossSection, float, float]]) -> None:
+    def __init__(self, basic_cross_sections: Sequence[CrossSectionComponent]) -> None:
         """
         :param basic_cross_sections: [(cross_section, x_offset, y_offset)]
         """
@@ -172,11 +204,31 @@ class ComplexCrossSection(CrossSection):
         for cs, x_offset, y_offset in basic_cross_sections:
             kwargs.update({f"{k}({x_offset}, {y_offset})": v for k, v in cs.kwargs().items()})
         super().__init__(**kwargs)
-        self.basic_cross_sections: list[tuple[CrossSection, float, float]] = list(basic_cross_sections)
+        self.basic_cross_sections: list[CrossSectionComponent] = list(basic_cross_sections)
+        self.top_csc: CrossSectionComponent = max(basic_cross_sections, key=lambda x: x[0].height() + x[2])
+        self.vcp_bottom: list[CrossSectionComponent | None] = [self.top_csc]
+        self.vcp_top: list[CrossSectionComponent | None] = [None]
+        for i, (cs1, x1, y1) in enumerate(basic_cross_sections):
+            if isinstance(cs1, ComplexCrossSection):
+                raise ValueError("ComplexCrossSection must consist of only simple cross-sections")
+            if y1 == 0:
+                self.vcp_bottom.append(None)
+                self.vcp_top.append((cs1, x1, y1))
+                continue
+            h1 = cs1.height()
+            for cs2, x2, y2 in basic_cross_sections[i + 1:]:
+                if x1 > x2 + cs2.width() or x2 > x1 + cs1.width():
+                    continue
+                if abs((y1 + h1) - y2) < 1e-6:
+                    self.vcp_bottom.append((cs1, x1, y1))
+                    self.vcp_top.append((cs2, x2, y2))
+                elif abs((y2 + cs2.height()) - y1) < 1e-6:
+                    self.vcp_bottom.append((cs2, x2, y2))
+                    self.vcp_top.append((cs1, x1, y1))
 
     @override
     def __str__(self) -> str:
-        return f"ComplexCrossSection ({tuple(self.basic_cross_sections)})"
+        return f"ComplexCrossSection({tuple(self.basic_cross_sections)})"
 
     @override
     def width(self) -> float:
@@ -188,7 +240,7 @@ class ComplexCrossSection(CrossSection):
 
     @override
     def height(self) -> float:
-        return max(cs.height() + y_offset for cs, _, y_offset in self.basic_cross_sections)
+        return self.top_csc[0].height() + self.top_csc[2]
 
     def d_squared(self, i: int) -> float:
         x_bar, y_bar = self.centroid()
@@ -212,7 +264,7 @@ class ComplexCrossSection(CrossSection):
         if not 0 <= y < self.height():
             raise ValueError(f"y={y} must be between 0 and {self.height()}")
 
-    def select_components_above(self, y: float) -> list[tuple[CrossSection, float, float]]:
+    def select_components_above(self, y: float) -> list[CrossSectionComponent]:
         self.check_y(y)
         return [
             (cs, x_offset, y_offset) for cs, x_offset, y_offset in self.basic_cross_sections
@@ -262,6 +314,26 @@ class ComplexCrossSection(CrossSection):
             sub = cs.sub_above(relative_y)
             r.append((sub, x_offset, 0))
         return self.__class__(r)
+
+    @override
+    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = True) -> float:
+        if horizontal:
+            raise NotImplementedError("Calculation of horizontal safe flexural buckling stress is not supported yet")
+        top_cs = self.top_csc[0]
+        case1 = top_cs.safe_flexural_buckling_stress(material, horizontal=False)
+        free_width = top_cs.width()
+        for i, csc in enumerate(self.vcp_bottom):
+            if self.vcp_top[i] == self.top_csc:
+                free_width -= csc[0].width()
+        c1 = pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2)
+        case2 = 0.425 * c1 * (top_cs.height() / free_width) ** 2
+        case3 = 24 * c1 * (top_cs.height() / top_cs.width()) ** 2
+        return min(case1, case2, case3)
+
+    @override
+    def safe_shear_buckling_stress(self, material: Material, length_between_stiffeners: float) -> float:
+        return min(csc[0].safe_shear_buckling_stress(material, length_between_stiffeners)
+                   for csc in self.basic_cross_sections if csc in self.vcp_bottom and csc in self.vcp_top)
 
 
 class HollowBeam(ComplexCrossSection):
@@ -332,9 +404,12 @@ class CIV102Beam(ComplexCrossSection):
             (RectangularCrossSection(thickness, height - thickness), right - thickness, thickness),
             (RectangularCrossSection(bottom, thickness), left, 0)  # bottom beam
         ])
-        self._kwargs = {"top": top, "bottom": bottom, "height": height, "thickness": thickness, "outreach": outreach}
+        self._kwargs = {
+            "top": top, "bottom": bottom, "height": height, "thickness": thickness, "outreach": outreach
+        }
         if glue:
             self._kwargs["glue_y"] = height
+            self._kwargs["glue_b"] = 2 * (thickness + outreach)
 
     @override
     def min_width(self) -> float:
