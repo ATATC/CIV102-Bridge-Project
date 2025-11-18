@@ -165,8 +165,8 @@ print(cross_section.centroid())  # (49.99999999999999, 41.43109435192319)
 from bridger import *
 
 cross_section = CIV102Beam()
-print(cross_section.q(cross_section.centroid()[1]))  # 1431.126711540044
-print(cross_section.q_max())  # 1431.126711540044
+print(cross_section.q(cross_section.centroid()[1]))  # 6193.283330576374
+print(cross_section.q_max())  # 6193.283330576374
 ```
 
 ### Complex Cross-sections
