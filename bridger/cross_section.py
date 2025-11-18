@@ -169,8 +169,7 @@ class CircularCrossSection(CrossSection):
     @override
     def area_above(self, y: float) -> float:
         self.check_y(y)
-        theta = 2 * pi - 2 * (pi - pi * (self.d - y) / self.d)
-        return self.r ** 2 * (theta - 2 * (theta - pi) / 2)
+        return self.r ** 2 * pi
 
     @override
     def q(self, y: float) -> float:
@@ -290,6 +289,7 @@ class ComplexCrossSection(CrossSection):
 
     @override
     def q(self, y: float) -> float:
+        # fixme
         self.check_y(y)
         components = self.select_components_above(y)
         q = 0
