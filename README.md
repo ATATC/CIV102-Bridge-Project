@@ -110,7 +110,7 @@ from bridger import *
 cross_section = CIV102Beam()
 bridge = BeamBridge(452, cross_section)
 evaluator = Evaluator(bridge, Material())
-safety_factors_compression, safety_factors_tension, safety_factors_shear = evaluator.pass_the_train()
+safety_factors = evaluator.pass_the_train()
 ```
 
 `Evaluator.pass_the_train()` returns three lists of safety factors. Each list corresponds to the safety factors when the
@@ -123,8 +123,8 @@ from bridger import *
 cross_section = CIV102Beam()
 bridge = BeamBridge(452, cross_section)
 evaluator = Evaluator(bridge, Material(), safety_factor_threshold=.95)
-safety_factors_compression, safety_factors_tension, safety_factors_shear = evaluator.pass_the_train()
-dead_zones = evaluator.dead_zones(safety_factors_compression, safety_factors_tension, safety_factors_shear)
+safety_factors = evaluator.pass_the_train()
+dead_zones = evaluator.dead_zones(*safety_factors)
 print(dead_zones)  # [(157, 311)]
 ```
 
