@@ -267,7 +267,7 @@ class ComplexCrossSection(CrossSection):
         self.check_y(y)
         return [
             (cs, x_offset, y_offset) for cs, x_offset, y_offset in self.basic_cross_sections
-            if y_offset <= y < y_offset + cs.height()
+            if y < y_offset + cs.height()
         ]
 
     @override
@@ -289,14 +289,13 @@ class ComplexCrossSection(CrossSection):
 
     @override
     def q(self, y: float) -> float:
-        # fixme
         self.check_y(y)
         components = self.select_components_above(y)
         q = 0
         y_bar = self.centroid()[1]
         for cs, x_offset, y_offset in components:
             relative_y = y - y_offset
-            if relative_y < 0:
+            if relative_y <= 0:
                 q += cs.area() * (cs.centroid()[1] + y_offset - y_bar)
                 continue
             sub = cs.sub_above(relative_y)
