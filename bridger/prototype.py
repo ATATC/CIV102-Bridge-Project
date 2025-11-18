@@ -5,6 +5,7 @@ from typing import Sequence, override
 import numpy as np
 from matplotlib import pyplot as plt
 
+from bridger import Material
 from bridger.cross_section import CrossSection
 
 
@@ -24,6 +25,7 @@ class Bridge(object, metaclass=ABCMeta):
             return self._train_load
         self._train_load = train_load
         self._loads = self._load_distribution * train_load
+        return None
 
     def wheel_positions(self) -> list[float]:
         return list(self._wheel_positions)
@@ -72,6 +74,14 @@ class Bridge(object, metaclass=ABCMeta):
     def glue_safety_factor(self, safe_stress: float) -> float | None:
         applied_stress = self.ultimate_glue_stress()
         return safe_stress / applied_stress if applied_stress else None
+
+    @abstractmethod
+    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
+        raise NotImplementedError
+
+    @abstractmethod
+    def safe_shear_buckling_stress(self, material: Material) -> float:
+        raise NotImplementedError
 
     def flexural_buckling_safety_factor(self, safe_stress: float) -> float:
         return safe_stress / self.ultimate_stress()[0]
@@ -192,4 +202,14 @@ class BeamBridge(Bridge):
         v = self.shear_forces()
         v_max = max(abs(max(v)), abs(min(v)))
         kwargs = cs.kwargs()
-        return v_max * cs.q(kwargs["glue_y"]) / cs.moment_of_inertia() / cs.min_width() if "glue_y" in kwargs else None
+        if "glue_y" in kwargs and "glue_b" in kwargs:
+            return v_max * cs.q(kwargs["glue_y"]) / cs.moment_of_inertia() / kwargs["glue_b"]
+        return None
+
+    @override
+    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
+        return self._cross_section.safe_flexural_buckling_stress(material, horizontal=horizontal)
+
+    @override
+    def safe_shear_buckling_stress(self, material: Material) -> float:
+        return self._cross_section.safe_shear_buckling_stress(material)

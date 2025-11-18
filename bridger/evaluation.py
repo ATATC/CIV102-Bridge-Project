@@ -1,5 +1,6 @@
 from os import PathLike
 from typing import Sequence
+from math import pi
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -36,21 +37,25 @@ class Evaluator(object):
         wp = self._bridge.wheel_positions()
         return int((self._bridge.length() + wp[0] - wp[-1] / dx))
 
-    def pass_the_train(self, *, dx: float = 1) -> tuple[list[float], list[float], list[float], list[float]]:
+    def pass_the_train(self, *, dx: float = 1) -> tuple[list[float], list[float], list[float], list[float], list[
+        float], list[float]]:
         self.clear_train_position()
-        sfc = []
-        sft = []
-        sfs = []
-        sfg = []
+        sfc, sft, sfs, sfg, sffb, sfsb = [], [], [], [], [], []
         for _ in range(self.n(dx=dx)):
             c, t = self._bridge.safety_factor((self._material.compressive_strength, self._material.tensile_strength))
             sfc.append(c)
             sft.append(t)
             sfs.append(self._bridge.shear_safety_factor(self._material.shear_strength))
             sfg.append(self._bridge.glue_safety_factor(self._material.glue_strength))
+            sffb.append(self._bridge.flexural_buckling_safety_factor(self._bridge.safe_flexural_buckling_stress(
+                self._material
+            )))
+            sfsb.append(self._bridge.shear_buckling_safety_factor(self._bridge.safe_shear_buckling_stress(
+                self._material
+            )))
             self._bridge.move_the_train(dx)
         self.reset_train_position()
-        return sfc, sft, sfs, sfg
+        return sfc, sft, sfs, sfg, sffb, sfsb
 
     def dead_zones(self, safety_factors_compression: list[float], safety_factors_tension: list[float],
                    safety_factors_shear: list[float], safety_factors_glue: list[float], *, dx: float = 1) -> list[tuple[
@@ -95,8 +100,11 @@ class Evaluator(object):
         :return: (maximum load, cause)
         """
         self.clear_train_load()
-        c, t, s, g = self.pass_the_train(dx=dx)
-        safety_factors = {"compression": min(c), "tension": min(t), "shear": min(s), "glue": min(g)}
+        c, t, s, g, fb, sb = self.pass_the_train(dx=dx)
+        safety_factors = {
+            "compression": min(c), "tension": min(t), "shear": min(s), "glue": min(g), "flexural buckling": fb,
+            "shear buckling": sb
+        }
         cause = min(safety_factors.keys(), key=lambda x: safety_factors[x])
         self.reset_train_load()
         return safety_factors[cause], cause

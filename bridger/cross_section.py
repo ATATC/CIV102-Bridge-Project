@@ -63,11 +63,11 @@ class CrossSection(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = True) -> float:
+    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
         raise NotImplementedError
 
     @abstractmethod
-    def safe_shear_buckling_stress(self, material: Material, length_between_stiffeners: float) -> float:
+    def safe_shear_buckling_stress(self, material: Material) -> float:
         raise NotImplementedError
 
 
@@ -121,15 +121,15 @@ class RectangularCrossSection(CrossSection):
         return RectangularCrossSection(self.b, self.h - y)
 
     @override
-    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = True) -> float:
+    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
         c1 = pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2)
         c2 = (self.b / self.h) ** 2 if horizontal else (self.h / self.b) ** 2
         return min(0.425 * c1 * c2, 6 * c1 * 4 * c2)
 
     @override
-    def safe_shear_buckling_stress(self, material: Material, length_between_stiffeners: float) -> float:
+    def safe_shear_buckling_stress(self, material: Material) -> float:
         return 5 * pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2) * (
-                    (self.b / self.h) ** 2 + (self.b / length_between_stiffeners) ** 2)
+                    (self.b / self.h) ** 2 + (self.b / material.length_between_stiffeners) ** 2)
 
 
 class CircularCrossSection(CrossSection):
@@ -184,11 +184,11 @@ class CircularCrossSection(CrossSection):
         raise NotImplementedError
 
     @override
-    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = True) -> float:
+    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
         raise NotImplementedError
 
     @override
-    def safe_shear_buckling_stress(self, material: Material, length_between_stiffeners: float) -> float:
+    def safe_shear_buckling_stress(self, material: Material) -> float:
         raise NotImplementedError
 
 
@@ -316,7 +316,7 @@ class ComplexCrossSection(CrossSection):
         return self.__class__(r)
 
     @override
-    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = True) -> float:
+    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
         if horizontal:
             raise NotImplementedError("Calculation of horizontal safe flexural buckling stress is not supported yet")
         top_cs = self.top_csc[0]
@@ -331,9 +331,9 @@ class ComplexCrossSection(CrossSection):
         return min(case1, case2, case3)
 
     @override
-    def safe_shear_buckling_stress(self, material: Material, length_between_stiffeners: float) -> float:
-        return min(csc[0].safe_shear_buckling_stress(material, length_between_stiffeners)
-                   for csc in self.basic_cross_sections if csc in self.vcp_bottom and csc in self.vcp_top)
+    def safe_shear_buckling_stress(self, material: Material) -> float:
+        return min(csc[0].safe_shear_buckling_stress(material) for csc in self.basic_cross_sections
+                   if csc in self.vcp_bottom and csc in self.vcp_top)
 
 
 class HollowBeam(ComplexCrossSection):
