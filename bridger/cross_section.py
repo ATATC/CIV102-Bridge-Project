@@ -7,6 +7,15 @@ class CrossSection(object, metaclass=ABCMeta):
     def __init__(self, **kwargs: float) -> None:
         self._kwargs: dict[str, float] = kwargs
 
+    @abstractmethod
+    @override
+    def __str__(self) -> str:
+        raise NotImplementedError
+
+    @override
+    def __repr__(self) -> str:
+        return str(self)
+
     def kwargs(self) -> dict[str, float]:
         return self._kwargs
 
