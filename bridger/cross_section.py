@@ -122,9 +122,8 @@ class RectangularCrossSection(CrossSection):
 
     @override
     def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
-        c1 = pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2)
-        c2 = (self.b / self.h) ** 2 if horizontal else (self.h / self.b) ** 2
-        return min(0.425 * c1 * c2, 6 * c1 * 4 * c2)
+        return 4 * pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2) * ((
+                self.b / self.h) ** 2 if horizontal else (self.h / self.b) ** 2)
 
     @override
     def safe_shear_buckling_stress(self, material: Material) -> float:
@@ -315,19 +314,43 @@ class ComplexCrossSection(CrossSection):
             r.append((sub, x_offset, 0))
         return self.__class__(r)
 
+    def free_widths(self) -> tuple[float, float]:
+        top_cs = self.top_csc[0]
+        min_free_width = float('inf')
+        max_free_width = 0
+        support_points = []
+        for i, csc in enumerate(self.vcp_bottom):
+            if csc and self.vcp_top[i] == self.top_csc:
+                support_points.append((csc[1], csc[1] + csc[0].width()))
+        if not support_points:
+            max_free_width = min_free_width = top_cs.width()
+        else:
+            support_points.sort()
+            if support_points[0][0] > self.top_csc[1]:
+                width = support_points[0][0] - self.top_csc[1]
+                min_free_width = min(min_free_width, width)
+                max_free_width = width
+            top_right = self.top_csc[1] + top_cs.width()
+            if support_points[-1][1] < top_right:
+                width = top_right - support_points[-1][1]
+                min_free_width = min(min_free_width, width)
+                max_free_width = max(max_free_width, width)
+            for i in range(len(support_points) - 1):
+                gap = support_points[i + 1][0] - support_points[i][1]
+                if gap > 0:
+                    min_free_width = min(min_free_width, gap)
+                    max_free_width = max(max_free_width, gap)
+        return min_free_width, max_free_width
+
     @override
     def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
-        # fixme
         if horizontal:
             raise NotImplementedError("Calculation of horizontal safe flexural buckling stress is not supported yet")
         top_cs = self.top_csc[0]
-        case1 = top_cs.safe_flexural_buckling_stress(material, horizontal=False)
-        free_width = top_cs.width()
-        for i, csc in enumerate(self.vcp_bottom):
-            if self.vcp_top[i] == self.top_csc:
-                free_width -= csc[0].width()
+        min_free_width, _ = self.free_widths()
+        case1 = top_cs.safe_flexural_buckling_stress(material)
         c1 = pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2)
-        case2 = 0.425 * c1 * (top_cs.height() / free_width) ** 2
+        case2 = .425 * c1 * (top_cs.height() / min_free_width) ** 2
         case3 = 24 * c1 * (top_cs.height() / top_cs.width()) ** 2
         return min(case1, case2, case3)
 
