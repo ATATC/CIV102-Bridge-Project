@@ -68,6 +68,10 @@ class RectangularCrossSection(CrossSection):
         self.h: float = h
 
     @override
+    def __str__(self) -> str:
+        return f"RectangularCrossSection ({self.b}x{self.h})"
+
+    @override
     def moment_of_inertia(self) -> float:
         return self.b * self.h ** 3 / 12
 
@@ -112,6 +116,10 @@ class CircularCrossSection(CrossSection):
         super().__init__(r=r)
         self.r: float = r
         self.d: float = 2 * r
+
+    @override
+    def __str__(self) -> str:
+        return f"CircularCrossSection (radius {self.r})"
 
     @override
     def moment_of_inertia(self) -> float:
@@ -165,6 +173,10 @@ class ComplexCrossSection(CrossSection):
             kwargs.update({f"{k}({x_offset}, {y_offset})": v for k, v in cs.kwargs().items()})
         super().__init__(**kwargs)
         self.basic_cross_sections: list[tuple[CrossSection, float, float]] = list(basic_cross_sections)
+
+    @override
+    def __str__(self) -> str:
+        return f"ComplexCrossSection ({tuple(self.basic_cross_sections)})"
 
     @override
     def width(self) -> float:
