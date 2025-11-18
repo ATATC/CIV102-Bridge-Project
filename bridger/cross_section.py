@@ -293,13 +293,14 @@ class ComplexCrossSection(CrossSection):
         self.check_y(y)
         components = self.select_components_above(y)
         q = 0
+        y_bar = self.centroid()[1]
         for cs, x_offset, y_offset in components:
             relative_y = y - y_offset
             if relative_y < 0:
-                q += cs.area() * (cs.centroid()[1] + y_offset - y)
+                q += cs.area() * (cs.centroid()[1] + y_offset - y_bar)
                 continue
             sub = cs.sub_above(relative_y)
-            q += sub.area() * sub.centroid()[1]
+            q += sub.area() * (sub.centroid()[1] + y - y_bar)
         return q
 
     @override
