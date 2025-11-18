@@ -55,7 +55,7 @@ class Bridge(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def ultimate_glue_shear_stress(self) -> float:
+    def ultimate_glue_stress(self) -> float | None:
         raise NotImplementedError
 
     def safety_factor(self, safe_stress: tuple[float, float]) -> tuple[float, float]:
@@ -69,8 +69,9 @@ class Bridge(object, metaclass=ABCMeta):
     def shear_safety_factor(self, safe_stress: float) -> float:
         return safe_stress / self.ultimate_shear_stress()
 
-    def glue_safety_factor(self, safe_stress: float) -> float:
-        return safe_stress / self.ultimate_glue_shear_stress()
+    def glue_safety_factor(self, safe_stress: float) -> float | None:
+        applied_stress = self.ultimate_glue_stress()
+        return safe_stress / applied_stress if applied_stress else None
 
     def flexural_buckling_safety_factor(self, safe_stress: float) -> float:
         return safe_stress / self.ultimate_stress()[0]
@@ -186,6 +187,9 @@ class BeamBridge(Bridge):
         return v_max * cs.q_max() / cs.moment_of_inertia() / cs.min_width()
 
     @override
-    def ultimate_glue_shear_stress(self) -> float:
-        # todo
-        ...
+    def ultimate_glue_stress(self) -> float | None:
+        cs = self._cross_section
+        v = self.shear_forces()
+        v_max = max(abs(max(v)), abs(min(v)))
+        kwargs = cs.kwargs()
+        return v_max * cs.q(kwargs["glue_y"]) / cs.moment_of_inertia() / cs.min_width() if "glue_y" in kwargs else None

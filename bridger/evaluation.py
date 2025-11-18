@@ -1,4 +1,5 @@
 from os import PathLike
+from typing import Sequence
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -11,9 +12,7 @@ from bridger.utils import intervals
 class Evaluator(object):
     def __init__(self, bridge: Bridge, material: Material, *, safety_factor_threshold: float = 1) -> None:
         self._bridge: Bridge = bridge
-        self._safe_compressive_stress: float = material.compressive_strength
-        self._safe_tensile_stress: float = material.tensile_strength
-        self._safe_shear_stress: float = material.shear_strength
+        self._material: Material = material
         self._safety_factor_threshold: float = safety_factor_threshold
         self._real_train_load: float = bridge.train_load()
         self._real_train_position: float = bridge.wheel_positions()[0]
@@ -37,39 +36,50 @@ class Evaluator(object):
         wp = self._bridge.wheel_positions()
         return int((self._bridge.length() + wp[0] - wp[-1] / dx))
 
-    def pass_the_train(self, *, dx: float = 1) -> tuple[list[float], list[float], list[float]]:
+    def pass_the_train(self, *, dx: float = 1) -> tuple[list[float], list[float], list[float], list[float]]:
         self.clear_train_position()
-        safety_factors_compression = []
-        safety_factors_tension = []
-        safety_factors_shear = []
+        sfc = []
+        sft = []
+        sfs = []
+        sfg = []
         for _ in range(self.n(dx=dx)):
-            c, t = self._bridge.safety_factor((self._safe_compressive_stress, self._safe_tensile_stress))
-            safety_factors_compression.append(c)
-            safety_factors_tension.append(t)
-            s = self._bridge.shear_safety_factor(self._safe_shear_stress)
-            safety_factors_shear.append(s)
+            c, t = self._bridge.safety_factor((self._material.compressive_strength, self._material.tensile_strength))
+            sfc.append(c)
+            sft.append(t)
+            sfs.append(self._bridge.shear_safety_factor(self._material.shear_strength))
+            sfg.append(self._bridge.glue_safety_factor(self._material.glue_strength))
             self._bridge.move_the_train(dx)
         self.reset_train_position()
-        return safety_factors_compression, safety_factors_tension, safety_factors_shear
+        return sfc, sft, sfs, sfg
 
     def dead_zones(self, safety_factors_compression: list[float], safety_factors_tension: list[float],
-                   safety_factors_shear: list[float], *, dx: float = 1) -> list[tuple[float, float]]:
-        c, t, s = np.array(safety_factors_compression), np.array(safety_factors_tension), np.array(safety_factors_shear)
+                   safety_factors_shear: list[float], safety_factors_glue: list[float], *, dx: float = 1) -> list[tuple[
+        float, float]]:
+        c, t, s, g = (
+            np.array(safety_factors_compression), np.array(safety_factors_tension), np.array(safety_factors_shear),
+            np.array(safety_factors_glue)
+        )
         return intervals((c < self._safety_factor_threshold) | (t < self._safety_factor_threshold) | (
-                s < self._safety_factor_threshold), dx=dx)
+                s < self._safety_factor_threshold) | (g < self._safety_factor_threshold), dx=dx)
 
-    def plot_safety_factors(self, *, dx: float = 1, save_as: str | PathLike[str] | None = None) -> None:
-        c, t, s = self.pass_the_train(dx=dx)
+    def plot_safety_factors(self, *, dx: float = 1, save_as: str | PathLike[str] | None = None,
+                            colors: Sequence[str | None] = ("blue", "purple", "cyan", "pink")) -> None:
+        safety_factors = self.pass_the_train(dx=dx)
         plt.figure(figsize=(12, 6))
-        plt.plot(c, "orange")
-        plt.plot(t, "purple")
-        plt.plot(s, "blue")
+        names = ("Compression", "Tension", "Shear", "Glue")
+        legends = []
+        for i, color in enumerate(colors):
+            if not color:
+                continue
+            legends.append(names[i])
+            plt.plot(safety_factors[i], color)
         plt.hlines(self._safety_factor_threshold, 0, self.n(dx=dx), "red")
         plt.grid(True)
         plt.title("Safety Factor on Various Positions")
         plt.xlabel("Train Position (mm)")
         plt.ylabel("Safety Factor")
-        plt.legend(("Compressive", "Tensile", "Shear", "Failure Threshold"))
+        legends.append("Failure Threshold")
+        plt.legend(legends)
         if save_as:
             plt.savefig(save_as)
         plt.show()
@@ -85,8 +95,8 @@ class Evaluator(object):
         :return: (maximum load, cause)
         """
         self.clear_train_load()
-        c, t, s = self.pass_the_train(dx=dx)
-        safety_factors = {"compression": min(c), "tension": min(t), "shear": min(s)}
+        c, t, s, g = self.pass_the_train(dx=dx)
+        safety_factors = {"compression": min(c), "tension": min(t), "shear": min(s), "glue": min(g)}
         cause = min(safety_factors.keys(), key=lambda x: safety_factors[x])
         self.reset_train_load()
         return safety_factors[cause], cause

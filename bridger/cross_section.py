@@ -266,6 +266,10 @@ class HollowBeam(ComplexCrossSection):
         ])
         self._kwargs = {"b": b, "h": h, "thickness": thickness}
 
+    @override
+    def min_width(self) -> float:
+        return 2 * self._kwargs["thickness"]
+
 
 class IBeam(ComplexCrossSection):
     def __init__(self, d: float, bf: float, t: float, bw: float) -> None:
@@ -276,10 +280,14 @@ class IBeam(ComplexCrossSection):
         ])
         self._kwargs = {"d": d, "bf": bf, "t": t, "bw": bw}
 
+    @override
+    def min_width(self) -> float:
+        return self._kwargs["bw"]
+
 
 class CIV102Beam(ComplexCrossSection):
     def __init__(self, *, top: float = 100, bottom: float = 80, height: float = 75, thickness: float = 1.27,
-                 outreach: float = 5) -> None:
+                 outreach: float = 5, glue: bool = True) -> None:
         """
         ============================== ---
         [            top             ]  | thickness
@@ -304,6 +312,12 @@ class CIV102Beam(ComplexCrossSection):
             (RectangularCrossSection(bottom, thickness), left, 0)  # bottom beam
         ])
         self._kwargs = {"top": top, "bottom": bottom, "height": height, "thickness": thickness, "outreach": outreach}
+        if glue:
+            self._kwargs["glue_y"] = height
+
+    @override
+    def min_width(self) -> float:
+        return 2 * self._kwargs["thickness"]
 
 
 if __name__ == "__main__":
