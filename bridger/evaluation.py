@@ -56,15 +56,14 @@ class Evaluator(object):
         self.reset_train_position()
         return sfc, sft, sfs, sfg, sffb, sfsb
 
-    def dead_zones(self, safety_factors_compression: list[float], safety_factors_tension: list[float],
-                   safety_factors_shear: list[float], safety_factors_glue: list[float], *, dx: float = 1) -> list[tuple[
+    def dead_zones(self, c: list[float], t: list[float], s: list[float], g: list[float], fb: list[float],
+                   sb: list[float], *, dx: float = 1) -> list[tuple[
         float, float]]:
-        c, t, s, g = (
-            np.array(safety_factors_compression), np.array(safety_factors_tension), np.array(safety_factors_shear),
-            np.array(safety_factors_glue)
+        c, t, s, g, fb, sb = (
+            np.array(c), np.array(t), np.array(s), np.array(g), np.array(fb), np.array(sb)
         )
-        return intervals((c < self._safety_factor_threshold) | (t < self._safety_factor_threshold) | (
-                s < self._safety_factor_threshold) | (g < self._safety_factor_threshold), dx=dx)
+        sft = self._safety_factor_threshold
+        return intervals((c < sft) | (t < sft) | (s < sft) | (g < sft) | (fb < sft) | (sb < sft), dx=dx)
 
     def plot_safety_factors(self, *, dx: float = 1, save_as: str | PathLike[str] | None = None,
                             colors: Sequence[str | None] = ("blue", "purple", "cyan", "pink")) -> None:
@@ -101,8 +100,8 @@ class Evaluator(object):
         self.clear_train_load()
         c, t, s, g, fb, sb = self.pass_the_train(dx=dx)
         safety_factors = {
-            "compression": min(c), "tension": min(t), "shear": min(s), "glue": min(g), "flexural buckling": fb,
-            "shear buckling": sb
+            "compression": min(c), "tension": min(t), "shear": min(s), "glue": min(g), "flexural buckling": min(fb),
+            "shear buckling": min(sb)
         }
         cause = min(safety_factors.keys(), key=lambda x: safety_factors[x])
         self.reset_train_load()
