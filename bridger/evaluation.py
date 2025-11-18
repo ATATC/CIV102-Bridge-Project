@@ -66,10 +66,10 @@ class Evaluator(object):
         return intervals((c < sft) | (t < sft) | (s < sft) | (g < sft) | (fb < sft) | (sb < sft), dx=dx)
 
     def plot_safety_factors(self, *, dx: float = 1, save_as: str | PathLike[str] | None = None,
-                            colors: Sequence[str | None] = ("blue", "purple", "cyan", "pink")) -> None:
+                            colors: Sequence[str | None] = ("blue", "purple", "cyan", "pink", "yellow", "navy")) -> None:
         safety_factors = self.pass_the_train(dx=dx)
         plt.figure(figsize=(12, 6))
-        names = ("Compression", "Tension", "Shear", "Glue")
+        names = ("Compression", "Tension", "Shear", "Glue", "Flexural Buckling", "Shear Buckling")
         legends = []
         for i, color in enumerate(colors):
             if not color:
