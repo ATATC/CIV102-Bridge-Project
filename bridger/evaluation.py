@@ -1,6 +1,5 @@
 from os import PathLike
 from typing import Sequence
-from math import pi
 
 import numpy as np
 from matplotlib import pyplot as plt
