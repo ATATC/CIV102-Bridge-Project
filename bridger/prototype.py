@@ -5,7 +5,7 @@ from typing import Sequence, override
 import numpy as np
 from matplotlib import pyplot as plt
 
-from bridger import Material
+from bridger.material import Material
 from bridger.cross_section import CrossSection
 
 
