@@ -113,7 +113,7 @@ class RectangularCrossSection(CrossSection):
     @override
     def q(self, y: float) -> float:
         self.check_y(y)
-        return .5 * self.b * (self.h - y) ** 2
+        return .5 * self.b * (self.h - y) * (self.h - self.centroid()[1])
 
     @override
     def sub_above(self, y: float) -> Self:
@@ -318,6 +318,7 @@ class ComplexCrossSection(CrossSection):
 
     @override
     def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
+        # fixme
         if horizontal:
             raise NotImplementedError("Calculation of horizontal safe flexural buckling stress is not supported yet")
         top_cs = self.top_csc[0]
