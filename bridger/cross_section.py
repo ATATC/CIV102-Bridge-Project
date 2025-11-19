@@ -131,9 +131,8 @@ class RectangularCrossSection(CrossSection):
 
     @override
     def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
-        return 4 * pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2) * ((
-                                                                                                  self.b / self.h) ** 2 if horizontal else (
-                                                                                                                                                       self.h / self.b) ** 2)
+        return 4 * pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2) * (
+            (self.b / self.h) ** 2 if horizontal else (self.h / self.b) ** 2)
 
     @override
     def safe_shear_buckling_stress(self, material: Material) -> float:
