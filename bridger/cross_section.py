@@ -63,7 +63,7 @@ class CrossSection(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float | None:
+    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
         raise NotImplementedError
 
     @abstractmethod
@@ -121,7 +121,7 @@ class RectangularCrossSection(CrossSection):
         return RectangularCrossSection(self.b, self.h - y)
 
     @override
-    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float | None:
+    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
         return 4 * pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2) * ((
                 self.b / self.h) ** 2 if horizontal else (self.h / self.b) ** 2)
 
@@ -182,7 +182,7 @@ class CircularCrossSection(CrossSection):
         raise NotImplementedError
 
     @override
-    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float | None:
+    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
         raise NotImplementedError
 
     @override
@@ -343,14 +343,14 @@ class ComplexCrossSection(CrossSection):
         return min_free_width, max_free_width
 
     @override
-    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float | None:
+    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
         if horizontal:
             raise NotImplementedError("Calculation of horizontal safe flexural buckling stress is not supported yet")
         top_cs = self.top_csc[0]
         min_free_width, max_free_width = self.free_widths()
         top_safe_stress = top_cs.safe_flexural_buckling_stress(material)
         if not min_free_width or not max_free_width or not top_safe_stress:
-            return None
+            return float("inf")
         case1 = top_safe_stress * (top_cs.width() / max_free_width) ** 2
         c1 = pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2)
         case2 = .425 * c1 * (top_cs.height() / min_free_width) ** 2
