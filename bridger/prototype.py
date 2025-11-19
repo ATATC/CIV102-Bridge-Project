@@ -76,15 +76,15 @@ class Bridge(object, metaclass=ABCMeta):
         return safe_stress / applied_stress if applied_stress else None
 
     @abstractmethod
-    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
+    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float | None:
         raise NotImplementedError
 
     @abstractmethod
     def safe_shear_buckling_stress(self, material: Material) -> float:
         raise NotImplementedError
 
-    def flexural_buckling_safety_factor(self, safe_stress: float) -> float:
-        return safe_stress / self.ultimate_stress()[0]
+    def flexural_buckling_safety_factor(self, safe_stress: float | None) -> float | None:
+        return safe_stress / self.ultimate_stress()[0] if safe_stress else None
 
     def shear_buckling_safety_factor(self, safe_stress: float) -> float:
         return safe_stress / self.ultimate_shear_stress()
@@ -104,6 +104,7 @@ class BeamBridge(Bridge):
         if cross_section is None:
             return self._cross_section
         self._cross_section = cross_section
+        return None
 
     @override
     def length(self) -> float:
@@ -207,7 +208,7 @@ class BeamBridge(Bridge):
         return None
 
     @override
-    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
+    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float | None:
         return self._cross_section.safe_flexural_buckling_stress(material, horizontal=horizontal)
 
     @override
