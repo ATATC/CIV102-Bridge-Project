@@ -347,8 +347,8 @@ class ComplexCrossSection(CrossSection):
         if horizontal:
             raise NotImplementedError("Calculation of horizontal safe flexural buckling stress is not supported yet")
         top_cs = self.top_csc[0]
-        min_free_width, _ = self.free_widths()
-        case1 = top_cs.safe_flexural_buckling_stress(material)
+        min_free_width, max_free_width = self.free_widths()
+        case1 = top_cs.safe_flexural_buckling_stress(material) * (top_cs.width() / max_free_width) ** 2
         c1 = pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2)
         case2 = .425 * c1 * (top_cs.height() / min_free_width) ** 2
         case3 = 24 * c1 * (top_cs.height() / top_cs.width()) ** 2
