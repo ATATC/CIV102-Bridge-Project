@@ -315,46 +315,35 @@ class ComplexCrossSection(CrossSection):
         return self.__class__(r)
 
     def free_widths(self) -> tuple[float, float]:
-        top_cs = self.top_csc[0]
-        min_free_width = float('inf')
-        max_free_width = 0
-        support_points = []
-        for i, csc in enumerate(self.vcp_bottom):
-            if csc and self.vcp_top[i] == self.top_csc:
-                support_points.append((csc[1], csc[1] + csc[0].width()))
-        if not support_points:
-            max_free_width = min_free_width = top_cs.width()
-        else:
-            support_points.sort()
-            if support_points[0][0] > self.top_csc[1]:
-                width = support_points[0][0] - self.top_csc[1]
-                min_free_width = min(min_free_width, width)
-                max_free_width = width
-            top_right = self.top_csc[1] + top_cs.width()
-            if support_points[-1][1] < top_right:
-                width = top_right - support_points[-1][1]
-                min_free_width = min(min_free_width, width)
-                max_free_width = max(max_free_width, width)
-            for i in range(len(support_points) - 1):
-                gap = support_points[i + 1][0] - support_points[i][1]
-                if gap > 0:
-                    min_free_width = min(min_free_width, gap)
-                    max_free_width = max(max_free_width, gap)
-        return min_free_width, max_free_width
+        top_cs, top_x, _ = self.top_csc
+        left_overhang = float("inf")
+        right_overhang = float("inf")
+        for cs, x, y in self.basic_cross_sections:
+            if abs(y + cs.height() - (self.top_csc[2] + self.top_csc[0].height())) < 1e-6:
+                continue
+            if x + cs.width() <= top_x:
+                left_overhang = min(left_overhang, top_x - (x + cs.width()))
+            if x >= top_x + top_cs.width():
+                right_overhang = min(right_overhang, x - (top_x + top_cs.width()))
+            if top_x <= x <= top_x + top_cs.width():
+                left_overhang = min(left_overhang, x - top_x)
+                right_overhang = min(right_overhang, top_x + top_cs.width() - (x + cs.width()))
+        return (left_overhang if left_overhang != float("inf") else 0,
+                right_overhang if right_overhang != float("inf") else 0)
 
     @override
     def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
         if horizontal:
             raise NotImplementedError("Calculation of horizontal safe flexural buckling stress is not supported yet")
         top_cs = self.top_csc[0]
-        min_free_width, max_free_width = self.free_widths()
+        left_gap, right_gap = self.free_widths()
         top_safe_stress = top_cs.safe_flexural_buckling_stress(material)
-        if not min_free_width or not max_free_width or not top_safe_stress:
+        if not left_gap or not right_gap or not top_safe_stress:
             return float("inf")
-        case1 = top_safe_stress * (top_cs.width() / max_free_width) ** 2
+        case1 = top_safe_stress * (top_cs.width() / (top_cs.width() - left_gap - right_gap)) ** 2
         c1 = pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2)
-        case2 = .425 * c1 * (top_cs.height() / min_free_width) ** 2
-        case3 = 6 * c1 * (self.top_csc[2] - self.centroid()[1]) ** 2
+        case2 = .425 * c1 * (top_cs.height() / max(left_gap, right_gap)) ** 2
+        case3 = 6 * c1 * (top_cs.height() / (self.top_csc[2] - self.centroid()[1])) ** 2
         return min(case1, case2, case3)
 
     @override
