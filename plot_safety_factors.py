@@ -8,7 +8,7 @@ def plot_safety_factors() -> None:
     print(f"Maximum load: {max_load} N due to {causes}")
     evaluator.dead_zones(*evaluator.pass_the_train())
     if GRAPH:
-        evaluator.plot_safety_factors()
+        evaluator.plot_safety_factors(save_as="safety_factors.png")
 
 
 if __name__ == "__main__":
