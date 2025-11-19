@@ -2,6 +2,7 @@ from bridger import *
 
 cross_section = CIV102Beam()
 bridge = BeamBridge(400, cross_section, load_distribution=(1,) * 6)
+bridge.place_the_train(0)
 material = Material()
 print(bridge.safety_factor((material.compressive_strength, material.tensile_strength)))
 print(bridge.shear_safety_factor(material.shear_strength))
