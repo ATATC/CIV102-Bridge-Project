@@ -415,7 +415,7 @@ class CIV102Beam(ComplexCrossSection):
         """
         left, right = (top - bottom) * .5, (top + bottom) * .5
         super().__init__([
-            (RectangularCrossSection(100, 1.27), 0, height),  # top beam
+            (RectangularCrossSection(top, 1.27), 0, height),  # top beam
             (RectangularCrossSection(outreach, thickness), left + thickness, height - thickness),
             (RectangularCrossSection(outreach, thickness), right - thickness - outreach, height - thickness),
             (RectangularCrossSection(thickness, height - thickness), left, thickness),
