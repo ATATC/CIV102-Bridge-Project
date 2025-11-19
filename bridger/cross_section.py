@@ -349,7 +349,7 @@ class ComplexCrossSection(CrossSection):
         top_cs = self.top_csc[0]
         min_free_width, max_free_width = self.free_widths()
         top_safe_stress = top_cs.safe_flexural_buckling_stress(material)
-        if not min_free_width or not top_safe_stress:
+        if not min_free_width or not max_free_width or not top_safe_stress:
             return None
         case1 = top_safe_stress * (top_cs.width() / max_free_width) ** 2
         c1 = pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2)
