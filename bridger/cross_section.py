@@ -354,7 +354,7 @@ class ComplexCrossSection(CrossSection):
         case1 = top_safe_stress * (top_cs.width() / max_free_width) ** 2
         c1 = pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2)
         case2 = .425 * c1 * (top_cs.height() / min_free_width) ** 2
-        case3 = 24 * c1 * (top_cs.height() / top_cs.width()) ** 2
+        case3 = 6 * c1 * (self.top_csc[2] - self.centroid()[1]) ** 2
         return min(case1, case2, case3)
 
     @override
