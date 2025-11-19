@@ -2,6 +2,10 @@ from abc import ABCMeta, abstractmethod
 from math import pi
 from typing import override, Literal, Sequence, Self
 
+from matplotlib import pyplot as plt
+from matplotlib.axes import Axes
+from matplotlib.patches import Rectangle, Circle
+
 from bridger.material import Material
 
 
@@ -70,6 +74,11 @@ class CrossSection(object, metaclass=ABCMeta):
     def safe_shear_buckling_stress(self, material: Material) -> float:
         raise NotImplementedError
 
+    @abstractmethod
+    def visualize(self, *, ax: Axes | None = None, show_centroid: bool = True, offset: tuple[float, float] = (0, 0),
+                  **patch_kwargs) -> Axes:
+        raise NotImplementedError
+
 
 class RectangularCrossSection(CrossSection):
     def __init__(self, b: float, h: float) -> None:
@@ -123,71 +132,35 @@ class RectangularCrossSection(CrossSection):
     @override
     def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
         return 4 * pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2) * ((
-                self.b / self.h) ** 2 if horizontal else (self.h / self.b) ** 2)
+                                                                                                  self.b / self.h) ** 2 if horizontal else (
+                                                                                                                                                       self.h / self.b) ** 2)
 
     @override
     def safe_shear_buckling_stress(self, material: Material) -> float:
         return 5 * pi ** 2 * material.modulus / 12 / (1 - material.poisson_ratio ** 2) * (
-                    (self.b / self.h) ** 2 + (self.b / material.length_between_stiffeners) ** 2)
-
-
-class CircularCrossSection(CrossSection):
-    def __init__(self, r: float) -> None:
-        super().__init__(r=r)
-        self.r: float = r
-        self.d: float = 2 * r
+                (self.b / self.h) ** 2 + (self.b / material.length_between_stiffeners) ** 2)
 
     @override
-    def __str__(self) -> str:
-        return f"CircularCrossSection(radius {self.r})"
-
-    @override
-    def moment_of_inertia(self) -> float:
-        return pi * self.d ** 4 / 64
-
-    @override
-    def centroid(self) -> tuple[float, float]:
-        return self.r, self.r
-
-    @override
-    def width(self) -> float:
-        return self.d
-
-    @override
-    def height(self) -> float:
-        return self.d
-
-    @override
-    def area(self) -> float:
-        return pi * self.r ** 2
-
-    def check_y(self, y: float) -> None:
-        if not 0 <= y < self.d:
-            raise ValueError(f"y={y} must be between 0 and {self.d}")
-
-    @override
-    def area_above(self, y: float) -> float:
-        self.check_y(y)
-        return self.r ** 2 * pi
-
-    @override
-    def q(self, y: float) -> float:
-        self.check_y(y)
-        area = self.area_above(y)
-        centroid_y = (self.d + y) / 2
-        return area * (centroid_y - y)
-
-    @override
-    def sub_above(self, y: float) -> Self:
-        raise NotImplementedError
-
-    @override
-    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
-        raise NotImplementedError
-
-    @override
-    def safe_shear_buckling_stress(self, material: Material) -> float:
-        raise NotImplementedError
+    def visualize(self, *, ax: Axes | None = None, show_centroid: bool = True, offset: tuple[float, float] = (0, 0),
+                  **patch_kwargs) -> Axes:
+        created_fig = False
+        if ax is None:
+            fig, ax = plt.subplots()
+            created_fig = True
+        ox, oy = offset
+        rect = Rectangle((ox, oy), self.b, self.h, fill=False, **patch_kwargs)
+        ax.add_patch(rect)
+        if show_centroid:
+            cx, cy = self.centroid()
+            ax.scatter([ox + cx], [oy + cy], marker="x")
+        ax.set_aspect("equal", "box")
+        ax.set_xlim(ox - 0.1 * self.b, ox + 1.1 * self.b)
+        ax.set_ylim(oy - 0.1 * self.h, oy + 1.1 * self.h)
+        if created_fig:
+            ax.set_xlabel("x")
+            ax.set_ylabel("y")
+            plt.show()
+        return ax
 
 
 type CrossSectionComponent = tuple[CrossSection, float, float]
@@ -350,6 +323,36 @@ class ComplexCrossSection(CrossSection):
     def safe_shear_buckling_stress(self, material: Material) -> float:
         return min(csc[0].safe_shear_buckling_stress(material) for csc in self.basic_cross_sections
                    if csc in self.vcp_bottom and csc in self.vcp_top)
+
+    @override
+    def visualize(self, *, ax: Axes | None = None, show_centroid: bool = True, offset: tuple[float, float] = (0, 0),
+            **patch_kwargs) -> Axes:
+        created_fig = False
+        if ax is None:
+            fig, ax = plt.subplots()
+            created_fig = True
+        ox, oy = offset
+        for cs, x_offset, y_offset in self.basic_cross_sections:
+            cs.visualize(ax=ax, show_centroid=False, offset=(ox + x_offset, oy + y_offset), **patch_kwargs)
+        if show_centroid:
+            cx, cy = self.centroid()
+            ax.scatter([ox + cx], [oy + cy], marker="x")
+        min_x = min(ox + x for _, x, _ in self.basic_cross_sections)
+        min_y = min(oy + y for _, _, y in self.basic_cross_sections)
+        max_x = max(ox + x + cs.width() for cs, x, _ in self.basic_cross_sections)
+        max_y = max(oy + y + cs.height() for cs, _, y in self.basic_cross_sections)
+        width = max_x - min_x
+        height = max_y - min_y
+        margin_x = 0.1 * width if width > 0 else 1.0
+        margin_y = 0.1 * height if height > 0 else 1.0
+        ax.set_aspect("equal", "box")
+        ax.set_xlim(min_x - margin_x, max_x + margin_x)
+        ax.set_ylim(min_y - margin_y, max_y + margin_y)
+        if created_fig:
+            ax.set_xlabel("x")
+            ax.set_ylabel("y")
+            plt.show()
+        return ax
 
 
 class HollowBeam(ComplexCrossSection):
