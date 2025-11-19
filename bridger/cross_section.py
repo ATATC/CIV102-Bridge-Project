@@ -427,7 +427,7 @@ class CIV102Beam(ComplexCrossSection):
         }
         if glue:
             self._kwargs["glue_y"] = height
-            self._kwargs["glue_b"] = 2 * (thickness + outreach)
+            self._kwargs["glue_b"] = 2 * outreach
 
     @override
     def min_width(self) -> float:
