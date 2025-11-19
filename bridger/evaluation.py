@@ -34,7 +34,7 @@ class Evaluator(object):
 
     def n(self, *, dx: float = 1) -> int:
         wp = self._bridge.wheel_positions()
-        return int((self._bridge.length() + wp[0] - wp[-1] / dx))
+        return int((self._bridge.length() + wp[0] - wp[-1]) / dx)
 
     def pass_the_train(self, *, dx: float = 1) -> tuple[list[float], list[float], list[float], list[float], list[
         float], list[float]]:
