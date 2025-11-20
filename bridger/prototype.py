@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from os import PathLike
-from typing import Sequence, override
+from typing import Sequence, override, Callable
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -98,12 +98,12 @@ class BeamBridge(Bridge):
             raise ValueError("Length must be at least the length of the train")
         super().__init__(train_load, wheel_positions, load_distribution)
         self._length: float = length
-        self._cross_section: CrossSection = cross_section
+        self._v_cross_section: CrossSection = cross_section
 
     def cross_section(self, *, cross_section: CrossSection | None = None) -> CrossSection | None:
         if cross_section is None:
-            return self._cross_section
-        self._cross_section = cross_section
+            return self._v_cross_section
+        self._v_cross_section = cross_section
         return None
 
     @override
@@ -169,9 +169,9 @@ class BeamBridge(Bridge):
 
     def plot_bmd(self, *, dx: float = 1, save_as: str | PathLike[str] | None = None) -> None:
         x = self.x_linespace(dx=dx)
-        v = self.expanded_bending_moments(x) * 1e-3
+        m = self.expanded_bending_moments(x) * 1e-3
         plt.figure(figsize=(12, 6))
-        plt.plot(x, v)
+        plt.plot(x, m)
         plt.grid(True)
         plt.title("Bending Moment Diagram")
         plt.xlabel("Position (mm)")
@@ -181,25 +181,41 @@ class BeamBridge(Bridge):
         plt.show()
         plt.close()
 
+    def plot_curvature_diagram(self, material: Material, *, dx: float = 1,
+                               save_as: str | PathLike[str] | None = None) -> None:
+        x = self.x_linespace(dx=dx)
+        m = self.expanded_bending_moments(x) * 1e-3
+        phi = m / material.modulus / self._v_cross_section.moment_of_inertia()
+        plt.figure(figsize=(12, 6))
+        plt.plot(x, phi)
+        plt.grid(True)
+        plt.title("Curvature Diagram")
+        plt.xlabel("Position (mm)")
+        plt.ylabel("Curvature (mm-1)")
+        if save_as:
+            plt.savefig(save_as)
+        plt.show()
+        plt.close()
+
     @override
     def ultimate_stress(self) -> tuple[float, float]:
         m = self.bending_moments()
         m_max = max(abs(max(m)), abs(min(m)))
-        i = self._cross_section.moment_of_inertia()
-        h = self._cross_section.height()
-        y_bar = self._cross_section.centroid()[1]
+        i = self._v_cross_section.moment_of_inertia()
+        h = self._v_cross_section.height()
+        y_bar = self._v_cross_section.centroid()[1]
         return m_max * (h - y_bar) / i, m_max * y_bar / i
 
     @override
     def ultimate_shear_stress(self) -> float:
-        cs = self._cross_section
+        cs = self._v_cross_section
         v = self.shear_forces()
         v_max = max(abs(max(v)), abs(min(v)))
         return v_max * cs.q_max() / cs.moment_of_inertia() / cs.min_width()
 
     @override
     def ultimate_glue_stress(self) -> float | None:
-        cs = self._cross_section
+        cs = self._v_cross_section
         v = self.shear_forces()
         v_max = max(abs(max(v)), abs(min(v)))
         kwargs = cs.kwargs()
@@ -209,8 +225,96 @@ class BeamBridge(Bridge):
 
     @override
     def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
-        return self._cross_section.safe_flexural_buckling_stress(material, horizontal=horizontal)
+        return self._v_cross_section.safe_flexural_buckling_stress(material, horizontal=horizontal)
 
     @override
     def safe_shear_buckling_stress(self, material: Material) -> float:
-        return self._cross_section.safe_shear_buckling_stress(material)
+        return self._v_cross_section.safe_shear_buckling_stress(material)
+
+
+type VaryingCrossSection = Callable[[float], CrossSection]
+
+
+class NonUniformBeamBridge(BeamBridge):
+    def __init__(self, train_load: float, v_cross_section: VaryingCrossSection, *, length: float = 1200,
+                 wheel_positions: Sequence[float] = (172, 348, 512, 688, 852, 1028),
+                 load_distribution: Sequence[float] = (1.35, 1.35, 1, 1, 1, 1)) -> None:
+        super().__init__(train_load, v_cross_section(0), length=length, wheel_positions=wheel_positions,
+                         load_distribution=load_distribution)
+        self._v_cross_section: VaryingCrossSection = v_cross_section
+
+    @override
+    def cross_section(self, *, cross_section: CrossSection | None = None) -> CrossSection | None:
+        raise NotImplementedError
+
+    def v_cross_section(self, *, v_cross_section: VaryingCrossSection | None = None) -> VaryingCrossSection | None:
+        if v_cross_section is None:
+            return self._v_cross_section
+        self._v_cross_section = v_cross_section
+        return None
+
+    def cross_section_at(self, x: float) -> CrossSection:
+        return self._v_cross_section(x)
+
+    @override
+    def ultimate_stress(self) -> tuple[float, float]:
+        x = self.x_linespace()
+        m = self.expanded_bending_moments(x)
+        max_comp = 0
+        max_tens = 0
+        for xi, mi in zip(x, m):
+            cs = self.cross_section_at(xi)
+            i = cs.moment_of_inertia()
+            h = cs.height()
+            y_bar = cs.centroid()[1]
+            sigma_top = abs(mi) * (h - y_bar) / i
+            sigma_bottom = abs(mi) * y_bar / i
+            if sigma_top > max_comp:
+                max_comp = sigma_top
+            if sigma_bottom > max_tens:
+                max_tens = sigma_bottom
+        return max_comp, max_tens
+
+    @override
+    def ultimate_shear_stress(self) -> float:
+        x = self.x_linespace()
+        v = self.expanded_shear_forces(x)
+        tau_max = 0
+        for xi, vi in zip(x, v):
+            cs = self.cross_section_at(xi)
+            tau = abs(vi) * cs.q_max() / cs.moment_of_inertia() / cs.min_width()
+            if tau > tau_max:
+                tau_max = tau
+        return tau_max
+
+    @override
+    def ultimate_glue_stress(self) -> float | None:
+        x = self.x_linespace(dx=1)
+        v = self.expanded_shear_forces(x)
+        tau_glue_max: float | None = None
+        for xi, vi in zip(x, v):
+            cs = self.cross_section_at(xi)
+            kwargs = cs.kwargs()
+            if "glue_y" in kwargs and "glue_b" in kwargs:
+                tau = abs(vi) * cs.q(kwargs["glue_y"]) / cs.moment_of_inertia() / kwargs["glue_b"]
+                if tau_glue_max is None or tau > tau_glue_max:
+                    tau_glue_max = tau
+        return tau_glue_max
+
+    @override
+    def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
+        x = self.x_linespace(dx=1)
+        safe_values = [
+            self.cross_section_at(xi).safe_flexural_buckling_stress(material, horizontal=horizontal)
+            for xi in x
+        ]
+        return min(safe_values)
+
+    @override
+    def safe_shear_buckling_stress(self, material: Material) -> float:
+        x = self.x_linespace(dx=1)
+        safe_values = [
+            self.cross_section_at(xi).safe_shear_buckling_stress(material)
+            for xi in x
+        ]
+        return min(safe_values)
