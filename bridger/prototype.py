@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from os import PathLike
 from typing import Sequence, override, Callable
+from functools import lru_cache, cache
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -253,6 +254,7 @@ class VaryingBeamBridge(BeamBridge):
         self._v_cross_section = v_cross_section
         return None
 
+    @cache
     def cross_section_at(self, x: float) -> CrossSection:
         return self._v_cross_section(x)
 
@@ -275,6 +277,7 @@ class VaryingBeamBridge(BeamBridge):
         plt.show()
         plt.close()
 
+    @lru_cache()
     @override
     def ultimate_stress(self) -> tuple[float, float]:
         x = self.x_linespace()
@@ -294,6 +297,7 @@ class VaryingBeamBridge(BeamBridge):
                 max_tens = sigma_bottom
         return max_comp, max_tens
 
+    @lru_cache()
     @override
     def ultimate_shear_stress(self) -> float:
         x = self.x_linespace()
@@ -306,6 +310,7 @@ class VaryingBeamBridge(BeamBridge):
                 tau_max = tau
         return tau_max
 
+    @lru_cache()
     @override
     def ultimate_glue_stress(self) -> float | None:
         x = self.x_linespace(dx=1)
