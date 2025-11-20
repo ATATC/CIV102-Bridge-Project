@@ -43,7 +43,7 @@ def grid_search(param_ranges: dict[str, tuple[float, float, float]],
 
 def advanced_grid_search(param_ranges: dict[str, tuple[float, float, float]],
                          criterion: Callable[[dict[str, float]], float], constraint: Constraint | None, *,
-                         levels: int = 5, refinement: int = 4) -> tuple[dict[str, float], float]:
+                         levels: int = 4, refinement: int = 4) -> tuple[dict[str, float], float]:
     if levels < 1:
         raise ValueError("levels must be >= 1")
     if refinement < 2:
