@@ -131,7 +131,7 @@ class BeamOptimizer(object):
         return self._evaluator.maximum_load()[0]
 
     def optimize_cross_section(self, param_ranges: dict[str, tuple[float, float, float]], *,
-                               constraint: Constraint | None = None, use_grid_search: bool = False, **kwargs) -> tuple[
+                               constraint: Constraint | None = None, use_grid_search: bool = True, **kwargs) -> tuple[
         dict[str, float], float]:
         """
         :param param_ranges: parameter ranges like (start, end, step)
