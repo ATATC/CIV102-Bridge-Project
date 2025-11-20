@@ -5,12 +5,13 @@ params = {'top': 100.2, 'bottom': 60.7, 'thickness': 1.27, 'outreach': 5}
 
 max_height = 166.5
 min_height = 160
+margin = 60
 
 
 def cross_section(x: float) -> CrossSection:
-    if x <= 60 or x >= 1250 - 60:
+    if x <= margin or x >= 1250 - margin:
         return CIV102Beam(**params, height=min_height)
-    return CIV102Beam(**params, height=max_height - ((max_height - min_height) / 625) * abs(x - 625 - 60))
+    return CIV102Beam(**params, height=max_height - ((max_height - min_height) / 625) * abs(x - 625 - margin))
     # return CIV102Beam(**params, height=max_height - ((max_height - min_height) / 625 ** 2) * (x - 625 - 60) ** 2)
 
 
