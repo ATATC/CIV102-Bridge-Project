@@ -35,11 +35,18 @@ def optimize_cross_section() -> None:
     evaluator = Evaluator(bridge, material)
     optimizer = VaryingBeamOptimizer(evaluator)
     params, load = optimizer.optimize_cross_section({
-        "top": (100, MATBOARD_WIDTH, 1),
-        "bottom": (10, MATBOARD_WIDTH, 1),
-        "height1": (100, 200, 20),
-        "height2": (140, 200, 1),
-    }, constraint=constraint)
+        "top": (100, 120, 1),
+        "bottom": (60, 100, 1),
+        "height1": (140, 180, 20),
+        "height2": (140, 180, 5),
+    }, constraint=constraint,
+        strategy="best1bin",
+        popsize=25,
+        mutation=(.5, 1),
+        recombination=.7,
+        maxiter=2000,
+        tol=.001,
+    )
     print(params, load)
 
 
