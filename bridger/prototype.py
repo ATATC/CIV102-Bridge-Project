@@ -99,12 +99,12 @@ class BeamBridge(Bridge):
             raise ValueError("Length must be at least the length of the train")
         super().__init__(train_load, wheel_positions, load_distribution)
         self._length: float = length
-        self._v_cross_section: CrossSection = cross_section
+        self._cross_section: CrossSection = cross_section
 
     def cross_section(self, *, cross_section: CrossSection | None = None) -> CrossSection | None:
         if cross_section is None:
-            return self._v_cross_section
-        self._v_cross_section = cross_section
+            return self._cross_section
+        self._cross_section = cross_section
         return None
 
     @override
@@ -186,7 +186,7 @@ class BeamBridge(Bridge):
                                save_as: str | PathLike[str] | None = None) -> None:
         x = self.x_linespace(dx=dx)
         m = self.expanded_bending_moments(x) * 1e-3
-        phi = m / material.modulus / self._v_cross_section.moment_of_inertia()
+        phi = m / material.modulus / self._cross_section.moment_of_inertia()
         plt.figure(figsize=(12, 6))
         plt.plot(x, phi)
         plt.grid(True)
@@ -202,21 +202,21 @@ class BeamBridge(Bridge):
     def ultimate_stress(self) -> tuple[float, float]:
         m = self.bending_moments()
         m_max = max(abs(max(m)), abs(min(m)))
-        i = self._v_cross_section.moment_of_inertia()
-        h = self._v_cross_section.height()
-        y_bar = self._v_cross_section.centroid()[1]
+        i = self._cross_section.moment_of_inertia()
+        h = self._cross_section.height()
+        y_bar = self._cross_section.centroid()[1]
         return m_max * (h - y_bar) / i, m_max * y_bar / i
 
     @override
     def ultimate_shear_stress(self) -> float:
-        cs = self._v_cross_section
+        cs = self._cross_section
         v = self.shear_forces()
         v_max = max(abs(max(v)), abs(min(v)))
         return v_max * cs.q_max() / cs.moment_of_inertia() / cs.min_width()
 
     @override
     def ultimate_glue_stress(self) -> float | None:
-        cs = self._v_cross_section
+        cs = self._cross_section
         v = self.shear_forces()
         v_max = max(abs(max(v)), abs(min(v)))
         kwargs = cs.kwargs()
@@ -226,11 +226,11 @@ class BeamBridge(Bridge):
 
     @override
     def safe_flexural_buckling_stress(self, material: Material, *, horizontal: bool = False) -> float:
-        return self._v_cross_section.safe_flexural_buckling_stress(material, horizontal=horizontal)
+        return self._cross_section.safe_flexural_buckling_stress(material, horizontal=horizontal)
 
     @override
     def safe_shear_buckling_stress(self, material: Material) -> float:
-        return self._v_cross_section.safe_shear_buckling_stress(material)
+        return self._cross_section.safe_shear_buckling_stress(material)
 
 
 type VaryingCrossSection = Callable[[float], CrossSection]
@@ -248,10 +248,28 @@ class VaryingBeamBridge(BeamBridge):
     def cross_section(self, *, cross_section: CrossSection | None = None) -> CrossSection | None:
         raise NotImplementedError
 
+    def clear_cache(self) -> None:
+        self.cross_section_at.cache_clear()
+        self.ultimate_stress.cache_clear()
+        self.ultimate_shear_stress.cache_clear()
+        self.ultimate_glue_stress.cache_clear()
+
+    @override
+    def move_the_train(self, step_size: float) -> None:
+        super().move_the_train(step_size)
+        self.clear_cache()
+
+    @override
+    def train_load(self, *, train_load: float | None = None) -> float | None:
+        super().train_load(train_load=train_load)
+        self.clear_cache()
+
     def v_cross_section(self, *, v_cross_section: VaryingCrossSection | None = None) -> VaryingCrossSection | None:
         if v_cross_section is None:
             return self._v_cross_section
         self._v_cross_section = v_cross_section
+        self._cross_section = v_cross_section(0)
+        self.clear_cache()
         return None
 
     @cache
