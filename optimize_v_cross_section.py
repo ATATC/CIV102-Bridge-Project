@@ -1,8 +1,7 @@
-from typing import override, Sequence
+from typing import override
 
 from bridger import *
-from bridger.optimization import Constraint
-from initialization import *
+from final import bridge, material
 
 
 class VaryingBeamOptimizer(BeamOptimizer):
@@ -38,8 +37,8 @@ def optimize_cross_section() -> None:
     params, load = optimizer.optimize_cross_section({
         "top": (100, MATBOARD_WIDTH, 1),
         "bottom": (10, MATBOARD_WIDTH, 1),
-        "height1": (20, 200, 20),
-        "height2": (20, 200, 20),
+        "height1": (100, 200, 20),
+        "height2": (140, 200, 1),
     }, constraint=constraint)
     print(params, load)
 
