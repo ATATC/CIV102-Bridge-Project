@@ -10,8 +10,8 @@ min_height = 160
 def cross_section(x: float) -> CrossSection:
     if x <= 60 or x >= 1250 - 60:
         return CIV102Beam(**params, height=min_height)
-    # return CIV102Beam(**params, height=max_height - ((max_height - min_height) / 625) * abs(x - 625 - 60))
-    return CIV102Beam(**params, height=max_height - ((max_height - min_height) / 625 ** 2) * (x - 625 - 60) ** 2)
+    return CIV102Beam(**params, height=max_height - ((max_height - min_height) / 625) * abs(x - 625 - 60))
+    # return CIV102Beam(**params, height=max_height - ((max_height - min_height) / 625 ** 2) * (x - 625 - 60) ** 2)
 
 
 bridge = VaryingBeamBridge(1500, cross_section, length=1250, load_distribution=(1,) * 6)
