@@ -3,7 +3,7 @@ from initialization import *
 
 
 def plot_safety_factors() -> None:
-    evaluator = Evaluator(bridge, Material())
+    evaluator = Evaluator(bridge, material)
     max_load, causes = evaluator.maximum_load()
     print(f"Maximum load: {max_load} N due to {causes}")
     evaluator.dead_zones(*evaluator.pass_the_train())

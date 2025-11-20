@@ -13,7 +13,7 @@ def constraint(kwargs: dict[str, float]) -> dict[str, float] | None:
 
 
 def optimize_cross_section() -> None:
-    evaluator = Evaluator(bridge, Material(length_between_stiffeners=125))
+    evaluator = Evaluator(bridge, material)
     optimizer = BeamOptimizer(evaluator)
     cross_section, load = optimizer.optimize_cross_section({
         "top": (100, MATBOARD_WIDTH, 1),
