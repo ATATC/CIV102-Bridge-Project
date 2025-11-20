@@ -40,18 +40,16 @@ class Evaluator(object):
         float], list[float]]:
         self.clear_train_position()
         sfc, sft, sfs, sfg, sffb, sfsb = [], [], [], [], [], []
+        safe_flexural_buckling_stress = self._bridge.safe_flexural_buckling_stress(self._material)
+        safe_shear_buckling_stress = self._bridge.safe_shear_buckling_stress(self._material)
         for _ in range(self.n(dx=dx)):
             c, t = self._bridge.safety_factor((self._material.compressive_strength, self._material.tensile_strength))
             sfc.append(c)
             sft.append(t)
             sfs.append(self._bridge.shear_safety_factor(self._material.shear_strength))
             sfg.append(self._bridge.glue_safety_factor(self._material.glue_strength))
-            sffb.append(self._bridge.flexural_buckling_safety_factor(self._bridge.safe_flexural_buckling_stress(
-                self._material
-            )))
-            sfsb.append(self._bridge.shear_buckling_safety_factor(self._bridge.safe_shear_buckling_stress(
-                self._material
-            )))
+            sffb.append(self._bridge.flexural_buckling_safety_factor(safe_flexural_buckling_stress))
+            sfsb.append(self._bridge.shear_buckling_safety_factor(safe_shear_buckling_stress))
             self._bridge.move_the_train(dx)
         self.reset_train_position()
         return sfc, sft, sfs, sfg, sffb, sfsb
