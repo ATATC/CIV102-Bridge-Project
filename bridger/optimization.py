@@ -4,7 +4,6 @@ import numpy as np
 from scipy.optimize import differential_evolution
 from rich.progress import Progress, SpinnerColumn
 
-from bridger.cross_section import CrossSection
 from bridger.prototype import BeamBridge
 from bridger.evaluation import Evaluator
 
@@ -40,6 +39,43 @@ def grid_search(param_ranges: dict[str, tuple[float, float, float]],
             progress.update(task, advance=1)
         progress.update(task, description="Finished")
     return best_params, best_score
+
+
+def advanced_grid_search(param_ranges: dict[str, tuple[float, float, float]],
+                         criterion: Callable[[dict[str, float]], float], constraint: Constraint | None, *,
+                         levels: int = 3, refinement: int = 4) -> tuple[dict[str, float], float]:
+    if levels < 1:
+        raise ValueError("levels must be >= 1")
+    if refinement < 2:
+        raise ValueError("refinement must be >= 2")
+    global_ranges = param_ranges
+    overall_best_params: dict[str, float] = {}
+    overall_best_score: float = float("-inf")
+    for level in range(levels):
+        level_param_ranges: dict[str, tuple[float, float, float]] = {}
+        for name, (g_start, g_end, final_step) in global_ranges.items():
+            if level == levels - 1:
+                step = final_step
+            else:
+                power = (levels - 1) - level
+                step = final_step * (refinement ** power)
+            if not overall_best_params:
+                start = g_start
+                end = g_end
+            else:
+                center = overall_best_params[name]
+                span = refinement * step
+                start = max(g_start, center - span)
+                end = min(g_end, center + span)
+                if start >= end:
+                    start = max(g_start, min(center, g_end))
+                    end = start
+            level_param_ranges[name] = (start, end, step)
+        best_params_level, best_score_level = grid_search(level_param_ranges, criterion, constraint)
+        if best_score_level > overall_best_score:
+            overall_best_score = best_score_level
+            overall_best_params = best_params_level
+    return overall_best_params, overall_best_score
 
 
 def de_search(param_ranges: dict[str, tuple[float, float, float]], criterion: Callable[[dict[str, float]], float],
@@ -103,4 +139,6 @@ class BeamOptimizer(object):
         :param use_grid_search: whether to use a grid search instead of differential evolution search
         :return: (best params, maximum load)
         """
-        return (grid_search if use_grid_search else de_search)(param_ranges, self.load_criterion, constraint, **kwargs)
+        return (advanced_grid_search if use_grid_search else de_search)(
+            param_ranges, self.load_criterion, constraint, **kwargs
+        )

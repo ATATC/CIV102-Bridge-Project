@@ -1,7 +1,7 @@
 from bridger import *
 from initialization import *
 
-MATBOARD_WIDTH: float = 508
+MATBOARD_WIDTH: float = 400
 
 
 def constraint(kwargs: dict[str, float]) -> dict[str, float] | None:
