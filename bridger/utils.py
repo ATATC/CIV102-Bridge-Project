@@ -19,19 +19,18 @@ def intervals(x: np.ndarray, *, dx: float = 1) -> list[tuple[float, float]]:
 
 
 def lru_cache(*lru_args, **lru_kwargs):
-    def decorator(func):
+    def wrapper(func):
+        @_lru_cache(*lru_args, **lru_kwargs)
+        def _func(_self, *args, **kwargs):
+            return func(_self(), *args, **kwargs)
+
         @wraps(func)
-        def wrapped_func(self, *args, **kwargs):
-            self_weak = weakref.ref(self)
+        def inner(self, *args, **kwargs):
+            return _func(weakref.ref(self), *args, **kwargs)
 
-            @wraps(func)
-            @_lru_cache(*lru_args, **lru_kwargs)
-            def cached_method(*_args, **_kwargs):
-                return func(self_weak(), *_args, **_kwargs)
+        inner.cache_clear = _func.cache_clear
+        inner.cache_info = _func.cache_info
+        inner._cached_func = _func
+        return inner
 
-            setattr(self, func.__name__, cached_method)
-            return cached_method(*args, **kwargs)
-
-        return wrapped_func
-
-    return decorator
+    return wrapper
