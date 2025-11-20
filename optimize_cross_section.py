@@ -15,12 +15,12 @@ def constraint(kwargs: dict[str, float]) -> dict[str, float] | None:
 def optimize_cross_section() -> None:
     evaluator = Evaluator(bridge, material)
     optimizer = BeamOptimizer(evaluator)
-    cross_section, load = optimizer.optimize_cross_section({
+    params, load = optimizer.optimize_cross_section({
         "top": (100, MATBOARD_WIDTH, 1),
         "bottom": (10, MATBOARD_WIDTH, 1),
         "height": (20, 200, 20),
-    }, independent_params=("top", "bottom", "height"), constraint=constraint)
-    print(cross_section.kwargs(), load)
+    }, constraint=constraint)
+    print(params, load)
 
 
 if __name__ == "__main__":

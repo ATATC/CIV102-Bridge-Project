@@ -96,23 +96,12 @@ class BeamOptimizer(object):
         return self._evaluator.maximum_load()[0]
 
     def optimize_cross_section(self, param_ranges: dict[str, tuple[float, float, float]], *,
-                               independent_params: Sequence[str] | None = None,
-                               constraint: Constraint | None = None,
-                               use_grid_search: bool = False) -> tuple[CrossSection, float]:
+                               constraint: Constraint | None = None, use_grid_search: bool = False) -> tuple[
+        dict[str, float], float]:
         """
         :param param_ranges: parameter ranges like (start, end, step)
-        :param independent_params: names of the independent variables
         :param constraint: a function that fills the dependent variables or returns None if the parameters are not valid
         :param use_grid_search: whether to use a grid search instead of differential evolution search
-        :return: (best cross-section, maximum load)
+        :return: (best params, maximum load)
         """
-        cs = self._bridge.cross_section()
-        kwargs = cs.kwargs()
-        if independent_params:
-            for key in kwargs.copy().keys():
-                if key not in independent_params:
-                    kwargs.pop(key)
-        best_params, best_load = (grid_search if use_grid_search else de_search)(
-            param_ranges, self.load_criterion, constraint
-        )
-        return self._cs_type(**best_params), best_load
+        return (grid_search if use_grid_search else de_search)(param_ranges, self.load_criterion, constraint)

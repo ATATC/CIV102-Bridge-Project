@@ -1,6 +1,7 @@
-from typing import override
+from typing import override, Sequence
 
 from bridger import *
+from bridger.optimization import Constraint
 from initialization import *
 
 
@@ -18,6 +19,7 @@ class VaryingBeamOptimizer(BeamOptimizer):
         self._bridge.v_cross_section(v_cross_section=lambda x: CIV102Beam(**params2) if 400 < x < 800 else CIV102Beam(**params1))
         return self._evaluator.maximum_load()[0]
 
+
 MATBOARD_WIDTH: float = 395
 
 
@@ -33,13 +35,13 @@ def constraint(kwargs: dict[str, float]) -> dict[str, float] | None:
 def optimize_cross_section() -> None:
     evaluator = Evaluator(bridge, material)
     optimizer = VaryingBeamOptimizer(evaluator)
-    cross_section, load = optimizer.optimize_cross_section({
+    params, load = optimizer.optimize_cross_section({
         "top": (100, MATBOARD_WIDTH, 1),
         "bottom": (10, MATBOARD_WIDTH, 1),
         "height1": (20, 200, 20),
         "height2": (20, 200, 20),
-    }, independent_params=("top", "bottom", "height1", "height2"), constraint=constraint)
-    print(cross_section.kwargs(), load)
+    }, constraint=constraint)
+    print(params, load)
 
 
 if __name__ == "__main__":
