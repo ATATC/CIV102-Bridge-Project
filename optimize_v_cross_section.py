@@ -37,7 +37,7 @@ def optimize_cross_section() -> None:
     params, load = optimizer.optimize_cross_section({
         "top": (100, 120, 1),
         "bottom": (60, 100, 1),
-        "height1": (140, 180, 20),
+        "height1": (100, 180, 20),
         "height2": (140, 180, 5),
     }, constraint=constraint,
         strategy="best1bin",
