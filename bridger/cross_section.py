@@ -1,10 +1,11 @@
 from abc import ABCMeta, abstractmethod
 from math import pi
 from typing import override, Literal, Sequence, Self
+from functools import lru_cache
 
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
-from matplotlib.patches import Rectangle, Circle
+from matplotlib.patches import Rectangle
 
 from bridger.material import Material
 
@@ -200,32 +201,39 @@ class ComplexCrossSection(CrossSection):
     def __str__(self) -> str:
         return f"ComplexCrossSection({tuple(self.basic_cross_sections)})"
 
+    @lru_cache()
     @override
     def width(self) -> float:
         return max(cs.width() + x_offset for cs, x_offset, _ in self.basic_cross_sections)
 
+    @lru_cache()
     @override
     def min_width(self) -> float:
         return min(cs.min_width() for cs, _, _ in self.basic_cross_sections)
 
+    @lru_cache()
     @override
     def height(self) -> float:
         return self.top_csc[0].height() + self.top_csc[2]
 
+    @lru_cache()
     def d_squared(self, i: int) -> float:
         x_bar, y_bar = self.centroid()
         cs, x_offset, y_offset = self.basic_cross_sections[i]
         cx, cy = cs.centroid()
         return (y_bar - y_offset - cy) ** 2
 
+    @lru_cache()
     def d(self, i: int) -> float:
         return self.d_squared(i) ** .5
 
+    @lru_cache()
     @override
     def moment_of_inertia(self) -> float:
         return sum(cs.moment_of_inertia() + cs.area() * self.d_squared(i) for i, (cs, x_offset, y_offset) in enumerate(
             self.basic_cross_sections))
 
+    @lru_cache()
     @override
     def area(self) -> float:
         return sum(cs[0].area() for cs in self.basic_cross_sections)
@@ -234,6 +242,7 @@ class ComplexCrossSection(CrossSection):
         if not 0 <= y < self.height():
             raise ValueError(f"y={y} must be between 0 and {self.height()}")
 
+    @lru_cache()
     def select_components_above(self, y: float) -> list[CrossSectionComponent]:
         self.check_y(y)
         return [
@@ -241,12 +250,14 @@ class ComplexCrossSection(CrossSection):
             if y < y_offset + cs.height()
         ]
 
+    @lru_cache()
     @override
     def area_above(self, y: float) -> float:
         self.check_y(y)
         components = self.select_components_above(y)
         return sum(cs.area_above(max(y - y_offset, 0)) for cs, x_offset, y_offset in components)
 
+    @lru_cache()
     def centroid_along(self, axis: Literal[0, 1]) -> float:
         total = 0
         for cs, x_offset, y_offset in self.basic_cross_sections:
@@ -254,10 +265,12 @@ class ComplexCrossSection(CrossSection):
             total += cs.area() * (cs.centroid()[axis] + offsets[axis])
         return total / self.area()
 
+    @lru_cache()
     @override
     def centroid(self) -> tuple[float, float]:
         return self.centroid_along(0), self.centroid_along(1)
 
+    @lru_cache()
     @override
     def q(self, y: float) -> float:
         self.check_y(y)
@@ -273,6 +286,7 @@ class ComplexCrossSection(CrossSection):
             q += sub.area() * (sub.centroid()[1] + y - y_bar)
         return q
 
+    @lru_cache()
     @override
     def sub_above(self, y: float) -> Self:
         components = self.select_components_above(y)
@@ -286,6 +300,7 @@ class ComplexCrossSection(CrossSection):
             r.append((sub, x_offset, 0))
         return self.__class__(r)
 
+    @lru_cache()
     def free_widths(self) -> tuple[float, float]:
         top_cs, top_x, _ = self.top_csc
         left_overhang = float("inf")
