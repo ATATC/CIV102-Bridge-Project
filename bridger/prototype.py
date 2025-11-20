@@ -257,6 +257,25 @@ class NonUniformBeamBridge(BeamBridge):
         return self._v_cross_section(x)
 
     @override
+    def plot_curvature_diagram(self, material: Material, *, dx: float = 1,
+                               save_as: str | PathLike[str] | None = None) -> None:
+        x = self.x_linespace(dx=dx)
+        m = self.expanded_bending_moments(x) * 1e-3
+        phi = []
+        for xi, mi in zip(x, m):
+            phi.append(mi / material.modulus / self.cross_section_at(xi).moment_of_inertia())
+        plt.figure(figsize=(12, 6))
+        plt.plot(x, phi)
+        plt.grid(True)
+        plt.title("Curvature Diagram")
+        plt.xlabel("Position (mm)")
+        plt.ylabel("Curvature (mm-1)")
+        if save_as:
+            plt.savefig(save_as)
+        plt.show()
+        plt.close()
+
+    @override
     def ultimate_stress(self) -> tuple[float, float]:
         x = self.x_linespace()
         m = self.expanded_bending_moments(x)
