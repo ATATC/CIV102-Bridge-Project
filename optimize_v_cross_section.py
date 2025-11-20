@@ -16,7 +16,7 @@ class VaryingBeamOptimizer(BeamOptimizer):
         params2.pop("height1")
         params2["height"] = params2.pop("height2")
         self._bridge.v_cross_section(v_cross_section=lambda x: CIV102Beam(**params2) if 400 < x < 800 else CIV102Beam(**params1))
-        return -self._evaluator.maximum_load()[0]
+        return self._evaluator.maximum_load()[0]
 
 
 MATBOARD_WIDTH: float = 395
