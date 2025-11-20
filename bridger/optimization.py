@@ -72,7 +72,7 @@ def de_search(param_ranges: dict[str, tuple[float, float, float]], criterion: Ca
                 return float("inf")
         return -criterion(current_params)
 
-    result = differential_evolution(objective, bounds=bounds, polish=True)
+    result = differential_evolution(objective, bounds=bounds, polish=False)
     best_params = vector_to_params(result.x)
     if constraint:
         constrained = constraint(best_params)
