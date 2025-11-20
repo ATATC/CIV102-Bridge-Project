@@ -1,13 +1,13 @@
 from abc import ABCMeta, abstractmethod
 from os import PathLike
 from typing import Sequence, override, Callable
-from functools import lru_cache, cache
 
 import numpy as np
 from matplotlib import pyplot as plt
 
 from bridger.material import Material
 from bridger.cross_section import CrossSection
+from bridger.utils import lru_cache
 
 
 class Bridge(object, metaclass=ABCMeta):
@@ -272,7 +272,7 @@ class VaryingBeamBridge(BeamBridge):
         self.clear_cache()
         return None
 
-    @cache
+    @lru_cache()
     def cross_section_at(self, x: float) -> CrossSection:
         return self._v_cross_section(x)
 

@@ -1,13 +1,13 @@
 from abc import ABCMeta, abstractmethod
 from math import pi
 from typing import override, Literal, Sequence, Self
-from functools import lru_cache
 
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.patches import Rectangle
 
 from bridger.material import Material
+from bridger.utils import lru_cache
 
 
 class CrossSection(object, metaclass=ABCMeta):
