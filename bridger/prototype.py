@@ -261,8 +261,10 @@ class VaryingBeamBridge(BeamBridge):
 
     @override
     def train_load(self, *, train_load: float | None = None) -> float | None:
-        super().train_load(train_load=train_load)
+        if r := super().train_load(train_load=train_load):
+            return r
         self.clear_cache()
+        return None
 
     def v_cross_section(self, *, v_cross_section: VaryingCrossSection | None = None) -> VaryingCrossSection | None:
         if v_cross_section is None:
