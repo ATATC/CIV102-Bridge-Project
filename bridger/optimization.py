@@ -89,10 +89,9 @@ class BeamOptimizer(object):
         if not isinstance(bridge, BeamBridge):
             raise ValueError("Expecting a beam bridge")
         self._bridge: BeamBridge = bridge
-        self._cs_type: type[CrossSection] = bridge.cross_section().__class__
 
     def load_criterion(self, params: dict[str, float]) -> float:
-        self._bridge.cross_section(cross_section=self._cs_type(**params))
+        self._bridge.cross_section(cross_section=self._bridge.cross_section().__class__(**params))
         return self._evaluator.maximum_load()[0]
 
     def optimize_cross_section(self, param_ranges: dict[str, tuple[float, float, float]], *,
