@@ -153,9 +153,9 @@ class RectangularCrossSection(CrossSection):
         if show_centroid:
             cx, cy = self.centroid()
             ax.scatter([ox + cx], [oy + cy], marker="x")
-        ax.set_aspect("equal", "box")
         ax.set_xlim(ox - 0.1 * self.b, ox + 1.1 * self.b)
         ax.set_ylim(oy - 0.1 * self.h, oy + 1.1 * self.h)
+        ax.set_aspect("equal", "box")
         if created_fig:
             ax.set_xlabel("x")
             ax.set_ylabel("y")
@@ -359,9 +359,9 @@ class ComplexCrossSection(CrossSection):
         height = max_y - min_y
         margin_x = 0.1 * width if width > 0 else 1.0
         margin_y = 0.1 * height if height > 0 else 1.0
-        ax.set_aspect("equal", "box")
         ax.set_xlim(min_x - margin_x, max_x + margin_x)
         ax.set_ylim(min_y - margin_y, max_y + margin_y)
+        ax.set_aspect("equal", "box")
         if created_fig:
             ax.set_xlabel("x")
             ax.set_ylabel("y")
