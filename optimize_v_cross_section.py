@@ -15,7 +15,7 @@ class VaryingBeamOptimizer(BeamOptimizer):
         params2 = params.copy()
         params2.pop("height1")
         params2["height"] = params2.pop("height2")
-        self._bridge.v_cross_section(v_cross_section=lambda x: CIV102Beam(**params2) if 400 < x < 800 else CIV102Beam(**params1))
+        self._bridge.v_cross_section(v_cross_section=lambda x: CIV102Beam(**params2) if 416 < x < 833 else CIV102Beam(**params1))
         return self._evaluator.maximum_load()[0]
 
 
@@ -35,18 +35,11 @@ def optimize_cross_section() -> None:
     evaluator = Evaluator(bridge, material)
     optimizer = VaryingBeamOptimizer(evaluator)
     params, load = optimizer.optimize_cross_section({
-        "top": (100, 120, 1),
-        "bottom": (60, 100, 1),
-        "height1": (100, 180, 20),
-        "height2": (140, 180, 5),
-    }, constraint=constraint,
-        strategy="best1bin",
-        popsize=25,
-        mutation=(.5, 1),
-        recombination=.7,
-        maxiter=2000,
-        tol=.001,
-    )
+        "top": (100, MATBOARD_WIDTH, 1),
+        "bottom": (60, MATBOARD_WIDTH, 1),
+        "height1": (60, 180, 20),
+        "height2": (60, 200, 1),
+    }, constraint=constraint, use_grid_search=True)
     print(params, load)
 
 
