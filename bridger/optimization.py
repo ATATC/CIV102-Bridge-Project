@@ -43,7 +43,7 @@ def grid_search(param_ranges: dict[str, tuple[float, float, float]],
 
 
 def de_search(param_ranges: dict[str, tuple[float, float, float]], criterion: Callable[[dict[str, float]], float],
-              constraint: Constraint | None) -> tuple[dict[str, float], float]:
+              constraint: Constraint | None, **kwargs) -> tuple[dict[str, float], float]:
     param_names: list[str] = list(param_ranges.keys())
     grids: list[np.ndarray] = []
     bounds: list[tuple[float, float]] = []
@@ -72,7 +72,7 @@ def de_search(param_ranges: dict[str, tuple[float, float, float]], criterion: Ca
                 return float("inf")
         return -criterion(current_params)
 
-    result = differential_evolution(objective, bounds=bounds, polish=False)
+    result = differential_evolution(objective, bounds=bounds, polish=False, **kwargs)
     best_params = vector_to_params(result.x)
     if constraint:
         constrained = constraint(best_params)
@@ -95,7 +95,7 @@ class BeamOptimizer(object):
         return self._evaluator.maximum_load()[0]
 
     def optimize_cross_section(self, param_ranges: dict[str, tuple[float, float, float]], *,
-                               constraint: Constraint | None = None, use_grid_search: bool = False) -> tuple[
+                               constraint: Constraint | None = None, use_grid_search: bool = False, **kwargs) -> tuple[
         dict[str, float], float]:
         """
         :param param_ranges: parameter ranges like (start, end, step)
@@ -103,4 +103,4 @@ class BeamOptimizer(object):
         :param use_grid_search: whether to use a grid search instead of differential evolution search
         :return: (best params, maximum load)
         """
-        return (grid_search if use_grid_search else de_search)(param_ranges, self.load_criterion, constraint)
+        return (grid_search if use_grid_search else de_search)(param_ranges, self.load_criterion, constraint, **kwargs)
