@@ -19,7 +19,7 @@ class VaryingBeamOptimizer(BeamOptimizer):
         return self._evaluator.maximum_load()[0]
 
 
-MATBOARD_WIDTH: float = 395
+MATBOARD_WIDTH: float = 400
 
 
 def constraint(kwargs: dict[str, float]) -> dict[str, float] | None:
