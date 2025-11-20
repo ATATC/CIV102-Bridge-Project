@@ -1,3 +1,6 @@
+import weakref
+from functools import wraps, lru_cache as _lru_cache
+
 import numpy as np
 
 
@@ -13,3 +16,22 @@ def intervals(x: np.ndarray, *, dx: float = 1) -> list[tuple[float, float]]:
     if start is not None:
         r.append((start * dx, (len(x) - 1) * dx))
     return r
+
+
+def lru_cache(*lru_args, **lru_kwargs):
+    def decorator(func):
+        @wraps(func)
+        def wrapped_func(self, *args, **kwargs):
+            self_weak = weakref.ref(self)
+
+            @wraps(func)
+            @_lru_cache(*lru_args, **lru_kwargs)
+            def cached_method(*_args, **_kwargs):
+                return func(self_weak(), *_args, **_kwargs)
+
+            setattr(self, func.__name__, cached_method)
+            return cached_method(*args, **kwargs)
+
+        return wrapped_func
+
+    return decorator
