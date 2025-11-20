@@ -1,9 +1,9 @@
 from bridger import *
 
 material = Material(length_between_stiffeners=125)
-params = {'top': 100.0, 'bottom': 61.0, 'thickness': 1.27, 'outreach': 5}
+params = {'top': 100.2, 'bottom': 60.7, 'thickness': 1.27, 'outreach': 5}
 
-max_height = 160
+max_height = 166
 min_height = 160
 
 
