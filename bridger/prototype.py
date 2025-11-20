@@ -243,10 +243,6 @@ class VaryingBeamBridge(BeamBridge):
                          load_distribution=load_distribution)
         self._v_cross_section: VaryingCrossSection = v_cross_section
 
-    @override
-    def cross_section(self, *, cross_section: CrossSection | None = None) -> CrossSection | None:
-        raise NotImplementedError
-
     def v_cross_section(self, *, v_cross_section: VaryingCrossSection | None = None) -> VaryingCrossSection | None:
         if v_cross_section is None:
             return self._v_cross_section
