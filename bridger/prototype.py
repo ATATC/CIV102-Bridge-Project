@@ -235,7 +235,7 @@ class BeamBridge(Bridge):
 type VaryingCrossSection = Callable[[float], CrossSection]
 
 
-class NonUniformBeamBridge(BeamBridge):
+class VaryingBeamBridge(BeamBridge):
     def __init__(self, train_load: float, v_cross_section: VaryingCrossSection, *, length: float = 1200,
                  wheel_positions: Sequence[float] = (172, 348, 512, 688, 852, 1028),
                  load_distribution: Sequence[float] = (1.35, 1.35, 1, 1, 1, 1)) -> None:
