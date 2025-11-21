@@ -17,10 +17,21 @@ team decide to take this one step further and make these features possible:
 - Safe factor diagram
 - Simulation of the train passing the bridge
 - Finding the maximum load
-- Optimization of the cross-sectional area
-- Optimization of the glue position
+- Optimization of the cross-section dimensions
 - Extendability to other types of bridges
 - **Extremely easy to use**
+
+## Overview
+
+We did a pretty good job designing the bridge. Our predicted load was 1400 Newtons using a quadratic variation in the
+height of the cross-section. We can approximate the parabolic area by trapezoids.
+
+Before actually making the bridge, we bought 3 matboards with the identical shape from
+[Michaels](https://canada.michaels.com). We did a box beam and a trapezoid as two prototypes. If you try it on your own,
+you will soon realize that the biggest limitation of the project is not designing, but your paper-cutting and gluing
+skills. The trapezoid wastes a small amount of board area, resulting in fewer diaphragms. Also, the cutting optimization
+App we use, [optiCutter](https://www.opticutter.com/), only supports rectangular panels. It is so hard to manufacture
+that we decided to stick with the box beam, which still has a predicted maximum load of 1200 Newtons.
 
 ## Installation
 
@@ -240,6 +251,17 @@ from bridger import *
 cross_section = IBeam(933, 423, 43, 24)
 print(cross_section.moment_of_inertia() * 1e-6)  # 8424.6495395
 ```
+
+#### Visualization
+
+```python
+from bridger import *
+
+cross_section = IBeam(933, 423, 43, 24)
+cross_section.visualize()
+```
+
+![visualization](assets/images/visualization.png)
 
 ## Optimization
 
