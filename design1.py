@@ -17,6 +17,7 @@ if __name__ == "__main__":
     uniform_bridge.plot_curvature_diagram(material)
     uniform_evaluator = Evaluator(uniform_bridge, material)
     print(uniform_evaluator.maximum_load())
+    uniform_evaluator.plot_safety_factors(colors=("blue", "purple", "cyan", None, "yellow", "green"))
 
     bridge.plot_curvature_diagram(material)
     evaluator = Evaluator(bridge, material)
