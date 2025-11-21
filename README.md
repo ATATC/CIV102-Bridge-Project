@@ -285,10 +285,37 @@ params, load = optimizer.optimize_cross_section({
 print(params, load)
 ```
 
-It takes about 20 seconds to finish searching.
+It takes about 20 seconds to finish searching, thanks to the help of LRU cache.
 
 ```text
 {'top': 100.19999999999999, 'bottom': 60.69999999999999, 'height': 120.0, 'thickness': 1.27, 'outreach': 5} 719.6692696587126
+```
+
+## Varying Cross-sections
+
+The codebase inherently supports varying cross-sections. You can pass the cross-section as a function of position into
+`VaryingBeamBridge`. The following bridge has a side view as a trapezoid.
+
+```python
+from bridger import *
+
+material = Material()
+params = {'top': 100.2, 'bottom': 60.7, 'thickness': 1.27, 'outreach': 28}
+max_height = 180
+min_height = 120
+margin = 60
+
+
+def cross_section(x: float) -> CrossSection:
+    if x <= margin or x >= 1250 - margin:
+        return CIV102Beam(**params, height=min_height)
+    return CIV102Beam(**params, height=max_height - ((max_height - min_height) / (625 + 1.5 * margin)) * abs(
+        x - 625 - 1.5 * margin))
+
+
+bridge = VaryingBeamBridge(452, cross_section)
+evaluator = Evaluator(bridge, material)
+print(evaluator.maximum_load())  # (402.24314942828937, 'shear buckling')
 ```
 
 ## Team 602
