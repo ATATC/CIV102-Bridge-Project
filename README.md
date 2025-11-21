@@ -102,6 +102,23 @@ evaluator.plot_safety_factors(save_as="assets/images/safety_factors.png")
 
 ![safety factors](assets/images/safety_factors.png)
 
+Notice that the factor of safety of glue is way to high so all other curves are squeezed together. We can set
+the color of glue to `None` to remove it from the plot.
+
+```python
+from bridger import *
+
+cross_section = CIV102Beam()
+bridge = BeamBridge(452, cross_section)
+evaluator = Evaluator(bridge, Material())
+evaluator.plot_safety_factors(
+    colors=("blue", "purple", "cyan", None, "yellow", "green"), 
+    save_as="assets/images/safety_factors_no_glue.png"
+)
+```
+
+![safety factors no glue](assets/images/safety_factors_no_glue.png)
+
 #### Dead Zones
 
 ```python
@@ -113,22 +130,24 @@ evaluator = Evaluator(bridge, Material())
 safety_factors = evaluator.pass_the_train()
 ```
 
-`Evaluator.pass_the_train()` returns three lists of safety factors. Each list corresponds to the safety factors when the
+`Evaluator.pass_the_train()` returns six lists of safety factors. Each list corresponds to the safety factors when the
 train is at different positions. We can then calculate the dead zones, also known as the intervals where any type of
-safety factor is less than the threshold (1 by default, 0.95 in this case).
+safety factor is less than the threshold (1 by default, 0.6 in this case).
 
 ```python
 from bridger import *
 
 cross_section = CIV102Beam()
 bridge = BeamBridge(452, cross_section)
-evaluator = Evaluator(bridge, Material(), safety_factor_threshold=.95)
+evaluator = Evaluator(bridge, Material(), safety_factor_threshold=.6)
 safety_factors = evaluator.pass_the_train()
 dead_zones = evaluator.dead_zones(*safety_factors)
-print(dead_zones)  # [(157, 311)]
+print(dead_zones)  # [(20, 343)]
 ```
 
-The dead zones are tuples of two integers representing the start and end positions of each interval.
+The dead zones are tuples of two integers representing the start and end positions of each interval. `[(20, 343)]` means
+that when the first wheel of the train is at any position between 20 and 343 millimeters from the start, the bridge will
+fail.
 
 #### Maximum Load
 
@@ -147,7 +166,7 @@ print(f"The maximum load is {max_load} N, limited by {cause}")
 It returns a float number representing the maximum load and a string representing the reason.
 
 ```text
-The maximum load is 424.8080839891525 N, limited by compression
+The maximum load is 240.0889550207032 N, limited by flexural buckling
 ```
 
 ### Centroid of a Cross-section
@@ -183,10 +202,10 @@ A hollow square can be divided into four nonoverlapping rectangles.
 from bridger import *
 
 cross_section = ComplexCrossSection([
-    (RectangularCrossSection(12.7, 305), 0, 0),
-    (RectangularCrossSection(12.7, 305), 292.3, 0),
-    (RectangularCrossSection(279.6, 12.7), 0, 12.7),
-    (RectangularCrossSection(279.6, 12.7), 292.3, 12.7)
+    (RectangularCrossSection(305, 12.7), 0, 0), 
+    (RectangularCrossSection(12.7, 279.6), 0, 12.7),
+    (RectangularCrossSection(12.7, 279.6), 292.3, 12.7),
+    (RectangularCrossSection(305, 12.7), 0, 292.3)
 ])
 print(cross_section.moment_of_inertia() * 1e-6)  # 211.84488605453336
 ```
@@ -224,8 +243,8 @@ print(cross_section.moment_of_inertia() * 1e-6)  # 8424.6495395
 
 ## Optimization
 
-All design choices in this project are Convex Optimization Problems (COPs). By default, we use differential evolution
-to solve them. We also provide a more intuitive grid search approach. 
+All design choices in this project are Convex Optimization Problems (COPs). By default, we use advanced
+(multi-resolution) grid search to solve them. We also provide an option to use differential evolution from SciPy. 
 
 There is a much better way to implement the whole framework, that is to calculate everything in tensors using PyTorch.
 However, since it takes a lot of time to come up with a differentiable algorithm to find the cross-section properties,
@@ -234,39 +253,42 @@ instead of NumPy so that you can use gradient-based optimization to replace the 
 
 ### Cross-section Optimization
 
-The following example is optimizing the cross-section dimensions when the width of the matboard is 508, so that the
-surface lengths of the cross-section must add up to 508 and the top must be wider than the bottom. There are some
-other constraints applied to the range of the parameters. See details in the project handout.
+The following example is optimizing the cross-section dimensions when the width of the matboard is 813, so that the
+surface lengths of the cross-section must add up to 813 and the top must be wider than the bottom. There are some
+other constraints applied to the range of the parameters, such as the height must be a multiple of 20. See details in
+the project handout.
 
 ```python
 from bridger import *
 
+MATBOARD_WIDTH: float = 400
+
+
 def constraint(kwargs: dict[str, float]) -> dict[str, float] | None:
     top, bottom, height = kwargs["top"], kwargs["bottom"], kwargs["height"]
     kwargs["thickness"] = 1.27
-    used = top + bottom + 2 * (height - 2.54)
-    if used > matboard_width or top < bottom:
-        return None
-    kwargs["outreach"] = .5 * (matboard_width - used)
-    return kwargs if 2 * kwargs["outreach"] < bottom else None
+    kwargs["outreach"] = 5
+    used = bottom + 2 * (height - 2.54) + 10
+    return kwargs if used <= MATBOARD_WIDTH and top > bottom else None
 
-matboard_width = 508
+
+matboard_width = 813
 cross_section = CIV102Beam()
 bridge = BeamBridge(452, cross_section)
 evaluator = Evaluator(bridge, Material())
 optimizer = BeamOptimizer(evaluator)
-cross_section, load = optimizer.optimize_cross_section({
-    "top": (100, matboard_width, 1),
-    "bottom": (10, matboard_width, 1),
+params, load = optimizer.optimize_cross_section({
+    "top": (100, MATBOARD_WIDTH, .1),
+    "bottom": (10, MATBOARD_WIDTH, .1),
     "height": (20, 200, 20),
-}, independent_params=("top", "bottom", "height"), constraint=constraint)
-print(cross_section.kwargs(), load)
+}, constraint=constraint)
+print(params, load)
 ```
 
-It takes about 10 seconds to finish searching.
+It takes about 20 seconds to finish searching.
 
 ```text
-{'top': 100.0, 'bottom': 27.0, 'height': 180.0, 'thickness': 1.27, 'outreach': 13.039999999999992} 1223.092565759034
+{'top': 100.19999999999999, 'bottom': 60.69999999999999, 'height': 120.0, 'thickness': 1.27, 'outreach': 5} 719.6692696587126
 ```
 
 ## Team 602
