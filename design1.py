@@ -1,6 +1,6 @@
 from bridger import *
 
-material = Material(length_between_stiffeners=125)
+material = Material(length_between_stiffeners=140)
 cross_section1 = CIV102Beam(**{'top': 100.2, 'bottom': 60.7, 'height': 160, 'thickness': 1.27, 'outreach': 28})
 cross_section1.visualize()
 cross_section2 = CIV102Beam(**{'top': 100.2, 'bottom': 60.7, 'height': 161.27, 'thickness': 1.27, 'outreach': 28})
