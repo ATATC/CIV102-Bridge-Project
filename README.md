@@ -1,5 +1,8 @@
 # CIV102-Bridge-Project
 
+:tada: Our final bridge, which is designed using this software, can be found
+[here](https://atatc.github.io/blog/2025/bridge).
+
 ## Project Description
 
 The CIV102 has a term course project where we build a bridge with a matboard that aims to survive under various load
