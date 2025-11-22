@@ -1,7 +1,7 @@
 # CIV102-Bridge-Project
 
-:tada: Our final bridge, which is designed using this software, can be found
-[here](https://atatc.github.io/blog/2025/bridge).
+:tada: A 2D Matboard visualization of our final bridge, designed using opticutter.com, can be found
+[here](https://ibb.co/YK2s9t2).
 
 ## Project Description
 
