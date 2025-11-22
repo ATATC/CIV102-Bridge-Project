@@ -357,7 +357,7 @@ D. Chan, J. Zhou, N. Saxena, and [T. Fu](https://atatc.github.io)
 ```bibtex
 @techreport{team602civ102,
     title = {CIV102 Bridge Project Design Report},
-    author = {Chan, D. and Zhuo, J. and Saxena, N. and Fu, T.},
+    author = {Chan, D. and Zhou, J. and Saxena, N. and Fu, T.},
     institution = {Faculty of Applied Science and Engineering, University of Toronto},
     year = {2025},
     month = {November},
