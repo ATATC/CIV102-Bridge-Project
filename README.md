@@ -350,7 +350,7 @@ print(evaluator.maximum_load())  # (402.24314942828937, 'shear buckling')
 Sorting follows alphabetic order of the first name initials and does not reflect contributions. The hyperlinks refer to
 portfolios.
 
-D. Chan, J. Zhuo, N. Saxena, and [T. Fu](https://atatc.github.io)
+D. Chan, J. Zhou, N. Saxena, and [T. Fu](https://atatc.github.io)
 
 ### Citation
 
