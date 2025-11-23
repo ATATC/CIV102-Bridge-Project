@@ -95,6 +95,19 @@ Ultimate applied stress: (6.384059301633374, 7.592045684386937) MPa
 FOS: (0.9398408937813106, 3.9515041462006852)
 ```
 
+Furthermore, we can plot the displaced shape.
+
+```python
+from bridger import *
+
+cross_section = CIV102Beam()
+material = Material()
+bridge = BeamBridge(452, cross_section)
+bridge.plot_displaced_shape(material, save_as="assets/images/displaced_shape.png")
+```
+
+![displaced shape](assets/images/displaced_shape.png)
+
 ### Evaluation
 
 #### Safety Factors
