@@ -5,8 +5,8 @@ from typing import Sequence, override, Callable
 import numpy as np
 from matplotlib import pyplot as plt
 
-from bridger.material import Material
 from bridger.cross_section import CrossSection
+from bridger.material import Material
 from bridger.utils import lru_cache
 
 
@@ -182,11 +182,21 @@ class BeamBridge(Bridge):
         plt.show()
         plt.close()
 
+    def curvatures(self, material: Material) -> list[float]:
+        m = self.bending_moments()
+        phi = []
+        moment_of_inertia = self._cross_section.moment_of_inertia()
+        for i in range(1, len(m)):
+            phi.append(m[i] / material.modulus / moment_of_inertia)
+        return phi
+
+    def expanded_curvatures(self, material: Material, x: np.ndarray) -> np.ndarray:
+        return self.expanded_bending_moments(x) / material.modulus / self._cross_section.moment_of_inertia()
+
     def plot_curvature_diagram(self, material: Material, *, dx: float = 1,
                                save_as: str | PathLike[str] | None = None) -> None:
         x = self.x_linespace(dx=dx)
-        m = self.expanded_bending_moments(x) * 1e-3
-        phi = m / material.modulus / self._cross_section.moment_of_inertia()
+        phi = self.expanded_curvatures(material, x)
         plt.figure(figsize=(12, 6))
         plt.plot(x, phi)
         plt.grid(True)
@@ -231,6 +241,39 @@ class BeamBridge(Bridge):
     @override
     def safe_shear_buckling_stress(self, material: Material) -> float:
         return self._cross_section.safe_shear_buckling_stress(material)
+
+    def expanded_slopes(self, material: Material, x: np.ndarray) -> np.ndarray:
+        phi = self.expanded_curvatures(material, x)
+        dx = x[1] - x[0]
+        theta = np.zeros_like(x)
+        for i in range(1, len(x)):
+            theta[i] = theta[i - 1] + phi[i - 1] * dx
+        return theta
+
+    def expanded_displacement(self, material: Material, x: np.ndarray) -> np.ndarray:
+        theta = self.expanded_slopes(material, x)
+        dx = x[1] - x[0]
+        y = np.zeros_like(x)
+        for i in range(1, len(x)):
+            y[i] = y[i - 1] + theta[i - 1] * dx
+        slope = y[-1] / x[-1]
+        y -= x * slope
+        return y
+
+    def plot_displaced_shape(self, material: Material, *, dx: float = 1,
+                             save_as: str | PathLike[str] | None = None) -> None:
+        x = self.x_linespace(dx=dx)
+        y = self.expanded_displacement(material, x)
+        plt.figure(figsize=(12, 6))
+        plt.plot(x, y)
+        plt.grid(True)
+        plt.title("Displaced Shape")
+        plt.xlabel("Position (mm)")
+        plt.ylabel("Displacement (mm)")
+        if save_as:
+            plt.savefig(save_as)
+        plt.show()
+        plt.close()
 
 
 type VaryingCrossSection = Callable[[float], CrossSection]
@@ -279,23 +322,21 @@ class VaryingBeamBridge(BeamBridge):
         return self._v_cross_section(x)
 
     @override
-    def plot_curvature_diagram(self, material: Material, *, dx: float = 1,
-                               save_as: str | PathLike[str] | None = None) -> None:
-        x = self.x_linespace(dx=dx)
-        m = self.expanded_bending_moments(x) * 1e-3
+    def curvatures(self, material: Material) -> list[float]:
+        m = self.bending_moments()
+        positions = [0, *self._wheel_positions, self._length]
         phi = []
-        for xi, mi in zip(x, m):
-            phi.append(mi / material.modulus / self.cross_section_at(xi).moment_of_inertia())
-        plt.figure(figsize=(12, 6))
-        plt.plot(x, phi)
-        plt.grid(True)
-        plt.title("Curvature Diagram")
-        plt.xlabel("Position (mm)")
-        plt.ylabel("Curvature (mm-1)")
-        if save_as:
-            plt.savefig(save_as)
-        plt.show()
-        plt.close()
+        for i in range(1, len(m)):
+            phi.append(m[i] / material.modulus / self.cross_section_at(positions[i]).moment_of_inertia())
+        return phi
+
+    @override
+    def expanded_curvatures(self, material: Material, x: np.ndarray) -> np.ndarray:
+        m = self.expanded_bending_moments(x)
+        phi = np.zeros_like(x)
+        for i, (xi, mi) in enumerate(zip(x, m)):
+            phi[i] = mi / material.modulus / self.cross_section_at(xi).moment_of_inertia()
+        return phi
 
     @lru_cache()
     @override
