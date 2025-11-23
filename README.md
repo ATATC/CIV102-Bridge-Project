@@ -12,12 +12,15 @@ team decide to take this one step further and make these features possible:
 - Composition of complex cross-sections using basic shapes
 - Automatic calculation of (x̄, ȳ) (the centroid), I (the moment of inertia), and Q(y) (the first moment of area about
   a given axis)
+- Visualization of cross-sections
 - Automatic calculation of shear forces (pivot points) and expanded shear forces
 - Shear force diagram
 - Automatic calculation of bending moments (pivot points) and expanded bending moments
 - Bending moment diagram
 - Automatic calculation of axial and shear stresses
 - Safe factor diagram
+- Automatic calculation of curvatures, slopes, and displacements
+- Displaced shape
 - Simulation of the train passing the bridge
 - Finding the maximum load
 - Optimization of the cross-section dimensions

@@ -10,8 +10,8 @@ def cross_section(x: float) -> CrossSection:
     return cross_section2 if 416 < x < 833 else cross_section1
 
 
-uniform_bridge = BeamBridge(1000, cross_section1, length=1250, load_distribution=(1,) * 6)
-bridge = VaryingBeamBridge(1000, cross_section, length=1250, load_distribution=(1,) * 6)
+uniform_bridge = BeamBridge(1500, cross_section1, length=1250, load_distribution=(1,) * 6)
+bridge = VaryingBeamBridge(1500, cross_section, length=1250, load_distribution=(1,) * 6)
 
 if __name__ == "__main__":
     uniform_bridge.plot_displaced_shape(material)
