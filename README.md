@@ -294,8 +294,8 @@ instead of NumPy so that you can use gradient-based optimization to replace the 
 
 ### Cross-section Optimization
 
-The following example is optimizing the cross-section dimensions when the width of the matboard is 813, so that the
-surface lengths of the cross-section must add up to 813 and the top must be wider than the bottom. There are some
+The following example is optimizing the cross-section dimensions when the width of the matboard is 400, so that the
+surface lengths of the cross-section must add up to 400 and the top must be wider than the bottom. There are some
 other constraints applied to the range of the parameters, such as the height must be a multiple of 20. See details in
 the project handout.
 
