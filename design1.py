@@ -14,12 +14,12 @@ uniform_bridge = BeamBridge(1000, cross_section1, length=1250, load_distribution
 bridge = VaryingBeamBridge(1000, cross_section, length=1250, load_distribution=(1,) * 6)
 
 if __name__ == "__main__":
-    uniform_bridge.plot_curvature_diagram(material)
+    uniform_bridge.plot_displaced_shape(material)
     uniform_evaluator = Evaluator(uniform_bridge, material)
     print(uniform_evaluator.maximum_load())
     uniform_evaluator.plot_safety_factors(colors=("blue", "purple", "cyan", None, "yellow", "green"))
 
-    bridge.plot_curvature_diagram(material)
+    bridge.plot_displaced_shape(material)
     evaluator = Evaluator(bridge, material)
     print(evaluator.maximum_load())
     evaluator.plot_safety_factors()

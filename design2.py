@@ -18,7 +18,7 @@ def cross_section(x: float) -> CrossSection:
 bridge = VaryingBeamBridge(1500, cross_section, length=1250, load_distribution=(1,) * 6)
 
 if __name__ == "__main__":
-    bridge.plot_curvature_diagram(material)
+    bridge.plot_displaced_shape(material)
     evaluator = Evaluator(bridge, material)
     print(evaluator.maximum_load())
     evaluator.plot_safety_factors()
