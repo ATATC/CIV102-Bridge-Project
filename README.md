@@ -5,7 +5,7 @@
 
 ## Project Description
 
-The CIV102 has a term course project where we build a bridge with a matboard that aims to survive under various load
+The CIV102 course has a term project where we build a bridge with a matboard that aims to survive under various load
 cases. It is actually one of the requirements that we need to implement some sort of automated analysis procedure. Our
 team decide to take this one step further and make these features possible:
 
