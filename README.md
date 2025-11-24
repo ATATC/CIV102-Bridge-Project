@@ -1,10 +1,9 @@
 # CIV102-Bridge-Project
 
 > [!NOTE]
-> :tada: A 2D Matboard visualization of our final bridge, designed using opticutter.com, can be found
-> [here](https://ibb.co/YK2s9t2).
+> :tada: Our bridge is tested on 2025-11-25. A blog post is available [here](https://atatc.github.io/blog/2025/bridge).
 
-Docs are available as [Wiki](https://github.com/ATATC/CIV102-Bridge-Project/wiki).
+**:bookmark_tabs: Docs are available as [Wiki](https://github.com/ATATC/CIV102-Bridge-Project/wiki).**
 
 ## Project Description
 
