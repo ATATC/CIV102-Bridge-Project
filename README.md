@@ -1,7 +1,8 @@
 # CIV102-Bridge-Project
 
-:tada: A 2D Matboard visualization of our final bridge, designed using opticutter.com, can be found
-[here](https://ibb.co/YK2s9t2).
+> [!NOTE]
+> :tada: A 2D Matboard visualization of our final bridge, designed using opticutter.com, can be found
+> [here](https://ibb.co/YK2s9t2).
 
 ## Project Description
 
