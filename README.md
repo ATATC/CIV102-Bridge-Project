@@ -30,6 +30,18 @@ team decide to take this one step further and make these features possible:
 - Extendability to other types of bridges
 - **Extremely easy to use**
 
+## Overview
+
+We did a pretty good job designing the bridge. Our predicted load was 1400 Newtons using a quadratic variation in the
+height of the cross-section. We can approximate the parabolic area by trapezoids.
+
+Before actually making the bridge, we bought 3 matboards with an identical shape from
+[Michaels](https://canada.michaels.com). We did a box beam and a trapezoid as two prototypes. If you try it on your own,
+you will soon realize that the biggest limitation of the project is not designing, but your paper-cutting and gluing
+skills. The trapezoid wastes a small amount of board area, resulting in fewer diaphragms. Also, the cutting optimization
+App we use, [optiCutter](https://www.opticutter.com), only supports rectangular panels. It is so hard to manufacture
+that we decided to stick with the box beam, which still has a predicted maximum load of 1200 Newtons.
+
 ## Installation
 
 ```shell
