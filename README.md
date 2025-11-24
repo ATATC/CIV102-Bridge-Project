@@ -122,6 +122,21 @@ evaluator = Evaluator(bridge, material)
 print(evaluator.maximum_load())  # (240.0889550207032, 'flexural buckling')
 ```
 
+### Plot the Factors of Safety at the Maximum Load
+
+```python
+from bridger import *
+
+cross_section = CIV102Beam()
+material = Material()
+bridge = BeamBridge(452, cross_section)
+evaluator = Evaluator(bridge, material)
+bridge.train_load(train_load=evaluator.maximum_load()[0])
+evaluator.plot_safety_factors(save_as="assets/images/safety_factors_d1.png")
+```
+
+![safety factors](assets/images/safety_factors_d1.png)
+
 ## Team 602
 
 ### Authors
