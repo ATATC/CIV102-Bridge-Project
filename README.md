@@ -84,6 +84,8 @@ Ultimate applied stress: (6.384059301633374, 7.592045684386937) MPa
 FOS: (0.9398408937813106, 3.9515041462006852)
 ```
 
+### Plot the Displaced Shape
+
 Furthermore, we can plot the displaced shape.
 
 ```python
@@ -96,6 +98,18 @@ bridge.plot_displaced_shape(material, save_as="assets/images/displaced_shape.png
 ```
 
 ![displaced shape](assets/images/displaced_shape.png)
+
+### Predict the Maximum Load
+
+```python
+from bridger import *
+
+cross_section = CIV102Beam()
+material = Material()
+bridge = BeamBridge(452, cross_section)
+evaluator = Evaluator(bridge, material)
+print(evaluator.maximum_load())  # (240.0889550207032, 'flexural buckling')
+```
 
 ## Team 602
 
