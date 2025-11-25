@@ -146,6 +146,15 @@ portfolios.
 
 D. Chan, J. Zhou, N. Saxena, and [T. Fu](https://atatc.github.io)
 
+### Team Name: Beam Everyone
+
+"Beat everyone" but "beam".
+
+### Bridge Name: Highway 102
+
+We picked this name not only because the course name is CIV102, but also because Ontario highways are named such that
+Highway 404 means there are four lanes. Our bridge only had one lane, so it made perfect sense.
+
 ### Citation
 
 ```bibtex
