@@ -1,7 +1,7 @@
 # CIV102-Bridge-Project
 
 > [!NOTE]
-> :tada: Our bridge is tested on 2025-11-25. A blog post is available [here](https://atatc.github.io/blog/2025/bridge).
+> :tada: Our bridge was tested on 2025-11-25. A blog post is available [here](https://atatc.github.io/blog/2025/bridge).
 
 **:bookmark_tabs: Docs are available as [Wiki](https://github.com/ATATC/CIV102-Bridge-Project/wiki).**
 
