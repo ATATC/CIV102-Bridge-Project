@@ -42,6 +42,9 @@ complex units are combinations of these fundamental units.
 
 ### Deliverable 1 as an Example
 
+You can find the definition of Deliverable 1 and its objectives in the
+[project handout](CIV102-2025F-BDP-Handout-v2.pdf).
+
 It is quite obvious that you need to have a bridge before analyzing it. To create a `BeamBridge`, you need to know the
 following parameters. The checked ones are defaulted to what we are given this year as the base case in load case 2.
 
