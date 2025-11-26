@@ -52,7 +52,7 @@ following parameters. The checked ones are defaulted to what we are given this y
 
 - [ ] Total train load in Newtons
 - [ ] Cross-section profile
-- [x] Length of the bridge (1200mm)
+- [x] Length of the bridge (1200 mm)
 - [x] Wheel positions ([172 348 512 688 852 1028], which is the center)
 - [x] Load distribution (1.35 1.35 1 1 1 1)
 
