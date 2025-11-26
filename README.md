@@ -5,6 +5,8 @@
 
 **:bookmark_tabs: Docs are available as [Wiki](https://github.com/ATATC/CIV102-Bridge-Project/wiki).**
 
+If you find our work helpful to you, you do not have to cite our design report, but perhaps star our repository, thanks.
+
 ## Project Description
 
 The CIV102 course has a term project where we build a bridge with a matboard that aims to survive under various load
