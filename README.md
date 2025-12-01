@@ -17,6 +17,7 @@ team decide to take this one step further and make these features possible:
 - Automatic calculation of (x̄, ȳ) (the centroid), I (the moment of inertia), and Q(y) (the first moment of area about
   a given axis)
 - Visualization of cross-sections
+- Support beam bridges with either uniform cross-sections or varying cross-sections
 - Automatic calculation of shear forces (pivot points) and expanded shear forces
 - Shear force diagram
 - Automatic calculation of bending moments (pivot points) and expanded bending moments
