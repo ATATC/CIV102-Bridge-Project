@@ -1,7 +1,8 @@
 # CIV102 Bridge Project
 
 > [!NOTE]
-> :tada: Our bridge was tested on 2025-11-25. A blog post is available [here](https://atatc.github.io/blog/2025/bridge).
+> :tada: We were top 1 in our cohort and 2nd in the class of 2025. A blog post is available
+> [here](https://atatc.github.io/blog/2025/bridge).
 
 **:bookmark_tabs: Docs are available as [Wiki](https://github.com/ATATC/CIV102-Bridge-Project/wiki).**
 
